@@ -23,7 +23,7 @@ CREATE TABLE "user" (
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    total_playtime INT NOT NULL CHECK (total_playtime >= 0),
+    total_playtime INT NOT NULL CHECK (total_playtime >= 0) DEFAULT 0,
     creation_date DATE NOT NULL DEFAULT CURRENT_DATE,  
     last_access_date DATE NOT NULL DEFAULT CURRENT_DATE
 );

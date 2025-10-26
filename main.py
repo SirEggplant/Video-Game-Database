@@ -1,15 +1,6 @@
 import psycopg
 
 
-conn = psycopg.connect(
-    dbname="p320_46",
-    user="",          # <- DB user only
-    password="",
-    host="localhost",
-    port=5432
-)
-
-
 
 def show_help():
     print("""
