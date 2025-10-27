@@ -1,4 +1,4 @@
-import psycopg
+import psycopg # pyright: ignore[reportMissingImports]
 from SteamUltraDeluxHDRemixRemastered2.authentication_and_session.authentication import (
     login_with_user, login_with_email, register
 )
@@ -108,8 +108,7 @@ following
 def show_reg_help():
     print(""" 
           register <username, password, firstname, lastname, email>
-    Create a new user account. You’ll be prompted for name, email,
-    and preferred platforms. The creation date is stored automatically.
+    Create a new user account. You’ll be prompted for name, email
           """)
     
 
