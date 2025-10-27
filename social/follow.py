@@ -1,6 +1,5 @@
 import psycopg
-import connection
-
+from SteamUltraDeluxHDRemixRemastered2.connection import execute_query
 
 def get_followers(uuid: str):
     sql = """
@@ -8,7 +7,7 @@ def get_followers(uuid: str):
         WHERE followed_user_uuid = %s
     """
     try:
-        return connection.execute_query(sql, (uuid,),fetchall=True)
+        return execute_query(sql, (uuid,),fetchall=True)
     except:
         return None
 
@@ -19,7 +18,7 @@ def follow(uuid_follower: str, uuid_followed: str):
     RETURNING *
 """
     try:
-        return connection.execute_query(sql,(uuid_follower, uuid_followed), fetchall=True)
+        return execute_query(sql,(uuid_follower, uuid_followed), fetchall=True)
     except:
         return None
 

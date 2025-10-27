@@ -1,6 +1,5 @@
 import psycopg
-import connection
-
+from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
 
 def create_collection(user_uuid, collection_name):
     sql = """
@@ -10,7 +9,7 @@ def create_collection(user_uuid, collection_name):
         RETURNING collection_uuid
     """
     try:
-        row = connection.execute_query(sql, (user_uuid, collection_name), fetchone=True)
+        row = execute_query(sql, (user_uuid, collection_name), fetchone=True)
         return row[0]
     except:
         return None
@@ -21,7 +20,7 @@ def list_users_collections(user_uuid: str):
         WHERE user_uuid = %s
     """
     try:
-        return connection.execute_query(sql, (user_uuid,), fetchall=True)
+        return execute_query(sql, (user_uuid,), fetchall=True)
     except:
         return None
     
@@ -37,7 +36,7 @@ def add_game_to_collection(game_uuid: str, collection_uuid: str):
         WHERE collection_uuid = %s
         RETURNING collection_uuid, num_of_games
     """
-    with connection.connect_to_db() as conn:
+    with connect_to_db() as conn:
         with conn.cursor() as cur:
             cur.execute(sql_insert, (collection_uuid, game_uuid))
             inserted = cur.fetchone()

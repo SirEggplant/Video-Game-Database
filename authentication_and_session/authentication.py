@@ -1,5 +1,6 @@
 import psycopg
-import connection
+from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
+
 
 
 def login_with_user(username, password):
@@ -13,7 +14,7 @@ def login_with_user(username, password):
         WHERE username = %s
 """
 
-    with connection.connect_to_db() as conn:
+    with connect_to_db() as conn:
         with conn.cursor() as cur:
             cur.execute(sql_select, (username, password))
             inserted = cur.fetchone()
@@ -34,7 +35,7 @@ def login_with_email(email, password):
         WHERE email = %s
 """
 
-    with connection.connect_to_db() as conn:
+    with connect_to_db() as conn:
         with conn.cursor() as cur:
             cur.execute(sql_select, (email, password))
             inserted = cur.fetchone()
@@ -55,7 +56,7 @@ def register(username, password, firstname, lastname, email):
 
 
     try:
-        value = connection.execute_query(sql_insert, (username, password, firstname, lastname, email), fetchone=True)
+        value = execute_query(sql_insert, (username, password, firstname, lastname, email), fetchone=True)
         return value[0]
     except:
         return None

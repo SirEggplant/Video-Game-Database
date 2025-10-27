@@ -1,5 +1,5 @@
 import psycopg
-import connection
+from SteamUltraDeluxHDRemixRemastered2.connection import execute_query
 
 
 esrb = {'Early Childhood',
@@ -23,7 +23,7 @@ def create_game(game_title, game_description, game_esrb):
         RETURNING game_UUID
     """
     try:
-        row = connection.execute_query(sql, (game_title, game_description, game_esrb), fetchone=True)
+        row = execute_query(sql, (game_title, game_description, game_esrb), fetchone=True)
         return row[0]
     except:
         return None
@@ -34,7 +34,7 @@ def get_game(game_uuid):
         SELECT * FROM game WHERE game_uuid = %s
     """
     try:
-        row = connection.execute_query(sql, (game_uuid,), fetchone=True)
+        row = execute_query(sql, (game_uuid,), fetchone=True)
         return row
     except:
         return None
