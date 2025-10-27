@@ -27,7 +27,7 @@ def login_with_user(username, password):
 def login_with_email(email, password):
 
     sql_select = """
-        SELECT user_uuid FROM "user" WHERE email = %s AND password = %s
+        SELECT * FROM "user" WHERE email = %s AND password = %s
     """
 
     sql_update = """
@@ -51,13 +51,13 @@ def register(username, password, firstname, lastname, email):
         INSERT INTO "user"
         (username, password, first_name, last_name, email, total_playtime, creation_date, last_access_date)
         VALUES (%s, %s, %s, %s, %s, 0, CURRENT_DATE, CURRENT_DATE)
-        RETURNING user_uuid
+        RETURNING * 
     """
 
 
     try:
         value = execute_query(sql_insert, (username, password, firstname, lastname, email), fetchone=True)
-        return value[0]
+        return value
     except:
         return None
             

@@ -1,5 +1,11 @@
 import psycopg
+from SteamUltraDeluxHDRemixRemastered2.authentication_and_session.authentication import (
+    login_with_user, login_with_email, register
+)
 
+
+UUID :str = ""
+LOGGED_IN : bool = False
 
 
 def show_help():
@@ -28,7 +34,7 @@ exit | quit
 login <email> <password>
     Log in as an existing user.
 
-register
+register <username, password, firstname, lastname, email>
     Create a new user account. You’ll be prompted for name, email,
     and preferred platforms. The creation date is stored automatically.
 
@@ -99,13 +105,55 @@ following
 """)
 
 
+def show_reg_help():
+    print(""" 
+          register <username, password, firstname, lastname, email>
+    Create a new user account. You’ll be prompted for name, email,
+    and preferred platforms. The creation date is stored automatically.
+          """)
+    
+
+def handle_login(tokens):
+    user = login_with_email(tokens[1], tokens[2])
+    UUID = user[0]
+    if(UUID != ""):
+        LOGGED_IN = True
+        print("Welcome Back " + user[3])
+    else:
+        print("User Could not be found")
+
+def handle_reg(tokens):
+    if(len(tokens) == 6):
+        user = register(username=tokens[1], password=tokens[2], firstname=tokens[3], lastname=tokens[4], email=tokens[5])
+        if(user != None):
+            LOGGED_IN = True
+            UUID = user[0]
+            print("Welcome " + user[3])
+        else:
+            print("Username already exists")
+            return
+    else:
+        show_reg_help()
+        return
+
 def main():
 
     show_help()
     while(True):
-        command = input()
+        command = input(">")
         if command == "q" or command == "quit" or command == "exit":
             return
+        
+        tokens = command.split(" ")
+        if tokens[0] == "login":
+            handle_login(tokens=tokens)
+            continue
+
+        elif tokens[0] == "reg" or tokens[0] == "register":
+            handle_reg(tokens=tokens)
+            continue
+
+
 
 
 
