@@ -1,0 +1,49 @@
+import psycopg
+import connection
+
+
+esrb = {'Early Childhood',
+      'Everyone',
+      'Everyone 10+',
+      'Teen',
+      'Mature 17+',
+      'Adults Only 18+',
+      'Rating Pending'}
+
+
+def create_game(game_title, game_description, game_esrb):
+
+    if game_esrb not in esrb:
+        return None
+
+    sql = """
+        INSERT INTO game
+        (title, game_description, esrb_rating)
+        VALUES(%s, %s, %s::esrb)
+        RETURNING game_UUID
+    """
+    try:
+        row = connection.execute_query(sql, (game_title, game_description, game_esrb), fetchone=True)
+        return row[0]
+    except:
+        return None
+
+def get_game(game_uuid):
+
+    sql = """
+        SELECT * FROM game WHERE game_uuid = %s
+    """
+    try:
+        row = connection.execute_query(sql, (game_uuid,), fetchone=True)
+        return row
+    except:
+        return None
+
+
+def main():
+    # print(create_game("the game", "it's a game", 'Everyone'))
+    print(get_game('2f973766-9419-4118-b397-fe9d7c2c1fe7'))
+
+
+if __name__ == "__main__":
+    main()

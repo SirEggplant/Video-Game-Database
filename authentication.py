@@ -4,27 +4,44 @@ import connection
 
 def login_with_user(username, password):
 
-    conn = connection.connect_to_db()
-    query = """
+    sql_select = """
         SELECT user_uuid FROM "user" WHERE username = %s AND password = %s
     """
 
-    value = connection.execute_query(query, (username, password))
-    return value[0]
+    sql_update = """
+        UPDATE "user" SET last_access_date = CURRENT_DATE 
+        WHERE username = %s
+"""
+
+    with connection.connect_to_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_select, (username, password))
+            inserted = cur.fetchone()
+            if not inserted:
+                return None
+            cur.execute(sql_update, (username,))
+            return inserted
 
             
 def login_with_email(email, password):
 
-    conn = connection.connect_to_db()
-    query = """
+    sql_select = """
         SELECT user_uuid FROM "user" WHERE email = %s AND password = %s
     """
 
-    try:
-        value = connection.execute_query(query, (email, password))
-        return value[0]
-    except:
-        return None
+    sql_update = """
+        UPDATE "user" SET last_access_date = CURRENT_DATE 
+        WHERE email = %s
+"""
+
+    with connection.connect_to_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_select, (email, password))
+            inserted = cur.fetchone()
+            if not inserted:
+                return None
+            cur.execute(sql_update, (email,))
+            return inserted
     
     
 def register(username, password, firstname, lastname, email):
@@ -38,7 +55,7 @@ def register(username, password, firstname, lastname, email):
 
 
     try:
-        value = connection.execute_query(sql_insert, (username, password, firstname, lastname, email))
+        value = connection.execute_query(sql_insert, (username, password, firstname, lastname, email), fetchone=True)
         return value[0]
     except:
         return None
@@ -47,8 +64,11 @@ def register(username, password, firstname, lastname, email):
 
 
 def main():
-    print(register("teteo1", "mmrk", "seb", "canakis", "sebastian1.canakis@gmail.com"))
+    # print(register("teteo1", "mmrk", "seb", "canakis", "sebastian1.canakis@gmail.com"))
+    # print(register("teteo2", "mmrk", "seb", "canakis", "sebastian2.canakis@gmail.com"))
+
     print(login_with_user("teteo1", "mmrk"))
+    print(login_with_email("sebastian1.canakis@gmail.com", "mmrk"))
 
 
 if __name__ == "__main__":

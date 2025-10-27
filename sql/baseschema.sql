@@ -34,7 +34,8 @@ CREATE TABLE collection(
     user_UUID uuid NOT NULL REFERENCES "user"(user_UUID),
     collection_name TEXT NOT NULL,
     num_of_games INT NOT NULL DEFAULT 0, 
-    total_playtime INT NOT NULL DEFAULT 0
+    total_playtime INT NOT NULL DEFAULT 0,
+    UNIQUE(user_UUID, collection_name)
 );
 
 CREATE TABLE follows(
@@ -60,9 +61,9 @@ CREATE TABLE game(
     game_UUID uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL UNIQUE,
     game_description TEXT,
-    total_user_rating FLOAT NOT NULL CHECK(total_user_rating >= 1 AND total_user_rating <= 5),
+    total_user_rating FLOAT NOT NULL DEFAULT 1.0 CHECK(total_user_rating >= 1 AND total_user_rating <= 5),
     esrb_rating esrb NOT NULL,
-    num_of_players INT NOT NULL
+    num_of_players INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE collection_contains(
