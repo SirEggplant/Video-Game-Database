@@ -1,4 +1,4 @@
-import psycopg
+import psycopg # pyright: ignore[reportMissingImports]
 from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
 
 def create_collection(user_uuid, collection_name):
