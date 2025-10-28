@@ -145,6 +145,7 @@ def handle_reg(tokens):
         show_reg_help()
         return
 
+# AI collection print formating
 def print_collections(rows):
     if not rows:
         print("No collections found.")
