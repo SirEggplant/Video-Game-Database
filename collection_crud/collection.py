@@ -48,6 +48,16 @@ def add_game_to_collection(game_uuid: str, collection_uuid: str):
             cur.execute(sql_update, (collection_uuid,))
             return cur.fetchone()
 
+def rename_collection(user_uuid: str, old_name: str, new_name: str):
+    sql_update = """
+        UPDATE collection SET collection_name = %s 
+        WHERE user_uuid = %s AND collection_name = %s
+        RETURNING *
+    """
+
+    row = execute_query(sql_update, (new_name, user_uuid, old_name,), fetchone=True)
+    return row
+
 def main():
     uuid = "44ecfb56-8c85-4165-b085-fb2ebc53b238"
     # print(create_collection(uuid, "Da Collection"))

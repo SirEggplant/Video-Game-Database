@@ -4,7 +4,7 @@ from SteamUltraDeluxHDRemixRemastered2.authentication_and_session.authentication
 )
 
 from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
-    create_collection, list_users_collections, add_game_to_collection
+    create_collection, list_users_collections, add_game_to_collection, rename_collection
 )
 
 
@@ -123,8 +123,8 @@ def handle_login_with_email(tokens):
         return
     
     user = login_with_email(tokens[1], tokens[2])
-    UUID = user[0]
-    if(UUID != ""):
+    if(user != None):
+        UUID = user[0]
         LOGGED_IN = True
         print("Welcome Back " + user[3])
     else:
@@ -174,25 +174,38 @@ def print_collections(rows):
     print(separator)
 
 def handle_create_collection(tokens):
-    if UUID == "" or LOGGED_IN == False:
-        print("Please Login to create a collection")
-        return
-    elif(len(tokens) != 3 and tokens[2] != None):
-        print("collections create <name>")
-    else:
-        collection = create_collection(UUID, tokens[2])
-        if collection == None:
-            print("Collection already exists")
-            return
-        print_collections(collection)
+    if(check_if_logged_in):
+        if(len(tokens) != 3 and tokens[2] != None):
+            print("collections create <name>")
+        else:
+            collection = create_collection(UUID, tokens[2])
+            if collection == None:
+                print("Collection already exists")
+                return
+            print_collections(collection)
 
 def handle_list_collection():
+    if(check_if_logged_in()):
+        rows = list_users_collections(UUID)
+        print_collections(rows)
+
+def handle_rename_collection(tokens):
+    if(check_if_logged_in()):
+        if(len(tokens) != 4):
+            print("collections rename <old_name> <new_name>")
+        if(tokens[3] != ""):
+            row = rename_collection(UUID, tokens[2], tokens[3])
+            if(row == None):
+                print("Collection you are trying to rename does not exists")
+                return
+            handle_list_collection()
+
+
+def check_if_logged_in():
     if UUID == "" or LOGGED_IN == False:
         print("Please Login to create a collection")
-        return
-    rows = list_users_collections(UUID)
-    print_collections(rows)
-
+        return False
+    return True
 
 def main():
     global UUID, LOGGED_IN
@@ -225,6 +238,8 @@ def main():
                 continue
             if(len(tokens) == 2 and tokens[1] == "list"):
                 handle_list_collection()
+            if(tokens[1] == "rename"):
+                handle_rename_collection(tokens)
 
                 
 if __name__ =="__main__":
