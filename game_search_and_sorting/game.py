@@ -12,7 +12,7 @@ esrb = {'Early Childhood',
       'Rating Pending'}
 
 
-def create_game(game_title, game_description, game_esrb):
+def create_game(game_title: str, game_description: str, game_esrb : str):
 
     if game_esrb not in esrb:
         return None
@@ -29,7 +29,7 @@ def create_game(game_title, game_description, game_esrb):
     except:
         return None
 
-def get_game(game_uuid):
+def get_game_by_uuid(game_uuid : str):
 
     sql = """
         SELECT * FROM game WHERE game_uuid = %s
@@ -43,8 +43,8 @@ def get_game(game_uuid):
 
 def main():
     # print(create_game("the game", "it's a game", 'Everyone'))
-    print(get_game('2f973766-9419-4118-b397-fe9d7c2c1fe7'))
-
+    # print(get_game('2f973766-9419-4118-b397-fe9d7c2c1fe7'))
+    pass
 
 if __name__ == "__main__":
     main()
