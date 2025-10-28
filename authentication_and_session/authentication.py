@@ -15,10 +15,29 @@ def login_with_user(username: str, password: str):
         WHERE username = %s
 """
 
-    row = execute_query(sql_select, (username, password,), fetchone=True)
-    execute_query(sql_update)
+    conn, server = connect_to_db()
+    if not conn or not server:
+        return None
 
-    return row
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select, (username, password))
+            result = cur.fetchone()
+            cur.execute(sql_update, (username,))
+            conn.commit()
+            return result
+    except Exception as e:
+        print("Error executing query:", e)
+        return None
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+        try:
+            server.stop()
+        except Exception:
+            pass
             
 def login_with_email(email: str, password: str):
 
@@ -31,9 +50,28 @@ def login_with_email(email: str, password: str):
         WHERE email = %s
 """
 
-    row = execute_query(sql_select, (email, password,), fetchone=True)
-    execute_query(sql_update, (email,))
-    return row
+    conn, server = connect_to_db()
+    if not conn or not server:
+        return None
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select, (email, password))
+            result = cur.fetchone()
+            cur.execute(sql_update, (email,))
+            conn.commit()
+            return result
+    except Exception as e:
+        print("Error executing query:", e)
+        return None
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+        try:
+            server.stop()
+        except Exception:
+            pass
     
     
 def register(username, password, firstname, lastname, email):

@@ -1,6 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 from SteamUltraDeluxHDRemixRemastered2.authentication_and_session.authentication import (
-    login_with_user, login_with_email, register
+    login_with_email, register
 )
 
 
@@ -116,6 +116,7 @@ def handle_login(tokens):
     if(len(tokens) != 3):
         print("login <email> <password>")
         return
+    
     user = login_with_email(tokens[1], tokens[2])
     UUID = user[0]
     if(UUID != ""):
