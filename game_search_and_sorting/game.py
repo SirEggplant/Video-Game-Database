@@ -41,6 +41,35 @@ def get_game_by_uuid(game_uuid : str):
         return None
 
 
+def get_game_by_title(title :str):
+    sql = """
+        SELECT * FROM game 
+        WHERE title ILIKE
+    """
+
+    try:
+        rows = execute_query(sql, (f"%{title}%",), fetchall=True)
+        return rows
+    except:
+        return None
+    
+def get_game_by_genre(genre :str):
+    sql = """
+        SELECT g.game_uuid, g.title, g.game_description, g.total_user_rating, g.esrb_rating, g.num_of_players
+        FROM game AS g
+        JOIN game_fits_in_genre AS gg ON gg.game_uuid = g.game_uuid
+        JOIN genre ON gg.genre_uuid = genre.genre_uuid 
+        WHERE genre.genre_name = %s;
+    """
+
+    try:
+        rows = execute_query(sql, (genre,), fetchall=True)
+        return rows
+    except:
+        return None
+
+
+
 def main():
     # print(create_game("the game", "it's a game", 'Everyone'))
     # print(get_game('2f973766-9419-4118-b397-fe9d7c2c1fe7'))
