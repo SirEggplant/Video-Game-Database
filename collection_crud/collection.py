@@ -1,15 +1,18 @@
 import psycopg # pyright: ignore[reportMissingImports]
+import uuid
 from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
 
 def create_collection(user_uuid, collection_name):
     sql = """
         INSERT INTO collection
-        (user_uuid, collection_name)
-        VALUES(%s, %s)
+        (collection_uuid, user_uuid, collection_name)
+        VALUES(%s,%s, %s)
         RETURNING collection_uuid
     """
+    collection_uuid = str(uuid.uuid4())
+
     try:
-        row = execute_query(sql, (user_uuid, collection_name), fetchone=True)
+        row = execute_query(sql, (collection_uuid, user_uuid, collection_name), fetchone=True)
         return row[0]
     except:
         return None

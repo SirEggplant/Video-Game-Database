@@ -113,6 +113,9 @@ def show_reg_help():
     
 
 def handle_login(tokens):
+    if(len(tokens) != 3):
+        print("login <email> <password>")
+        return
     user = login_with_email(tokens[1], tokens[2])
     UUID = user[0]
     if(UUID != ""):

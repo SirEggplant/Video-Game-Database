@@ -1,4 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 DO $$
 BEGIN
@@ -17,7 +16,7 @@ END$$;
 
 
 CREATE TABLE "user" (
-    user_UUID uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_UUID uuid NOT NULL PRIMARY KEY,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
@@ -30,7 +29,7 @@ CREATE TABLE "user" (
 
 
 CREATE TABLE collection(
-    collection_UUID uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    collection_UUID uuid NOT NULL PRIMARY KEY,
     user_UUID uuid NOT NULL REFERENCES "user"(user_UUID),
     collection_name TEXT NOT NULL,
     num_of_games INT NOT NULL DEFAULT 0, 
@@ -46,7 +45,7 @@ CREATE TABLE follows(
 );
 
 CREATE TABLE platform(
-    platform_UUID uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    platform_UUID uuid NOT NULL PRIMARY KEY,
     platform_name TEXT NOT NULL UNIQUE
 );
 
@@ -58,7 +57,7 @@ CREATE TABLE owns_platform(
 
 
 CREATE TABLE game(
-    game_UUID uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    game_UUID uuid NOT NULL PRIMARY KEY,
     title TEXT NOT NULL UNIQUE,
     game_description TEXT,
     total_user_rating FLOAT NOT NULL DEFAULT 1.0 CHECK(total_user_rating >= 1 AND total_user_rating <= 5),
@@ -87,7 +86,7 @@ CREATE TABLE game_release(
 
 
 CREATE TABLE genre(
-    genre_UUID uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    genre_UUID uuid NOT NULL PRIMARY KEY,
     genre_name TEXT NOT NULL UNIQUE
 );
 
@@ -102,7 +101,7 @@ CREATE TABLE game_fits_in_genre(
 
 
 CREATE TABLE contributor(
-    contributor_UUID uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    contributor_UUID uuid NOT NULL PRIMARY KEY,
     contributor_name TEXT NOT NULL UNIQUE
 );
 

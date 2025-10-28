@@ -1,4 +1,5 @@
 import psycopg # pyright: ignore[reportMissingImports]
+import uuid
 from SteamUltraDeluxHDRemixRemastered2.connection import execute_query
 
 
@@ -18,12 +19,12 @@ def create_game(game_title, game_description, game_esrb):
 
     sql = """
         INSERT INTO game
-        (title, game_description, esrb_rating)
+        (game_uuid, title, game_description, esrb_rating)
         VALUES(%s, %s, %s::esrb)
-        RETURNING game_UUID
+        RETURNING game_uuid
     """
     try:
-        row = execute_query(sql, (game_title, game_description, game_esrb), fetchone=True)
+        row = execute_query(sql, (str(uuid.uuid4()),game_title, game_description, game_esrb), fetchone=True)
         return row[0]
     except:
         return None
