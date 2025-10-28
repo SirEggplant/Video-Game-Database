@@ -4,7 +4,7 @@ from SteamUltraDeluxHDRemixRemastered2.authentication_and_session.authentication
 )
 
 from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
-    create_collection, list_users_collections, add_game_to_collection, rename_collection
+    create_collection, list_users_collections, add_game_to_collection, rename_collection, delete_collection, check_if_collection_exists
 )
 
 
@@ -200,6 +200,20 @@ def handle_rename_collection(tokens):
                 return
             handle_list_collection()
 
+def handle_delete_collection(tokens):
+    if(len(tokens) == 3 and check_if_logged_in()):
+        collection_name = tokens[2]
+        if(check_if_collection_exists(UUID, collection_name)):
+            response = input("(Y/N) Are you sure you want to delete collection (" + collection_name + "): ")
+            if(response.lower() == "y"):
+                delete_collection(UUID, collection_name)
+            else:
+                return
+        else:
+            "Collection does not exist"
+            return
+    
+
 
 def check_if_logged_in():
     if UUID == "" or LOGGED_IN == False:
@@ -219,27 +233,29 @@ def main():
             return
         
         tokens = command.split(" ")
-        if tokens[0] == "login":
+        if tokens[0].lower() == "login":
             handle_login_with_email(tokens)
             continue
 
-        elif tokens[0] == "reg" or tokens[0] == "register":
+        elif tokens[0].lower() == "reg" or tokens[0].lower() == "register":
             handle_reg(tokens=tokens)
             continue
 
-        elif tokens[0] == "logout":
+        elif tokens[0].lower() == "logout":
             UUID = ""
             LOGGED_IN = False
             continue
 
-        elif tokens[0] == "collections":
+        elif tokens[0].lower() == "collections":
             if (len(tokens) == 3  or len(tokens) == 2) and tokens[1] == "create":
                 handle_create_collection(tokens)
                 continue
             if(len(tokens) == 2 and tokens[1] == "list"):
                 handle_list_collection()
-            if(tokens[1] == "rename"):
+            if(tokens[1].lower() == "rename"):
                 handle_rename_collection(tokens)
+            if(tokens[1].lower() == "delete"):
+                handle_delete_collection(tokens)
 
                 
 if __name__ =="__main__":
