@@ -3,6 +3,10 @@ from SteamUltraDeluxHDRemixRemastered2.authentication_and_session.authentication
     login_with_email, register
 )
 
+from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
+    create_collection, list_users_collections, add_game_to_collection
+)
+
 
 UUID :str = ""
 LOGGED_IN : bool = False
@@ -112,7 +116,8 @@ def show_reg_help():
           """)
     
 
-def handle_login(tokens):
+def handle_login_with_email(tokens):
+    global UUID, LOGGED_IN
     if(len(tokens) != 3):
         print("login <email> <password>")
         return
@@ -126,6 +131,7 @@ def handle_login(tokens):
         print("User Could not be found")
 
 def handle_reg(tokens):
+    global UUID, LOGGED_IN
     if(len(tokens) == 6):
         user = register(username=tokens[1], password=tokens[2], firstname=tokens[3], lastname=tokens[4], email=tokens[5])
         if(user != None):
@@ -133,29 +139,94 @@ def handle_reg(tokens):
             UUID = user[0]
             print("Welcome " + user[3])
         else:
-            print("Username already exists")
+            print("Username already exists or email already exist")
             return
     else:
         show_reg_help()
         return
 
+def print_collections(rows):
+    if not rows:
+        print("No collections found.")
+        return
+
+    # Define column headers
+    headers = ["Name", "Number of Games", "Total Playtime"]
+
+    # Compute column widths
+    name_width = max(len(headers[0]), max(len(str(r[2])) for r in rows))
+    num_width = max(len(headers[1]), max(len(str(r[3])) for r in rows))
+    time_width = max(len(headers[2]), max(len(str(r[4])) for r in rows))
+
+    # Create a horizontal separator
+    separator = f"+-{'-' * name_width}-+-{'-' * num_width}-+-{'-' * time_width}-+"
+
+    # Print header
+    print(separator)
+    print(f"| {headers[0]:<{name_width}} | {headers[1]:<{num_width}} | {headers[2]:<{time_width}} |")
+    print(separator)
+
+    # Print each row
+    for r in rows:
+        print(f"| {r[2]:<{name_width}} | {r[3]:<{num_width}} | {r[4]:<{time_width}} |")
+
+    # Final line
+    print(separator)
+
+def handle_create_collection(tokens):
+    if UUID == "" or LOGGED_IN == False:
+        print("Please Login to create a collection")
+        return
+    elif(len(tokens) != 3 and tokens[2] != None):
+        print("collections create <name>")
+    else:
+        collection = create_collection(UUID, tokens[2])
+        if collection == None:
+            print("Collection already exists")
+            return
+        print_collections(collection)
+
+def handle_list_collection():
+    if UUID == "" or LOGGED_IN == False:
+        print("Please Login to create a collection")
+        return
+    rows = list_users_collections(UUID)
+    print_collections(rows)
+
+
 def main():
+    global UUID, LOGGED_IN
 
     show_help()
     while(True):
         command = input(">")
         if command == "q" or command == "quit" or command == "exit":
+            UUID = ""
+            LOGGED_IN = False
             return
         
         tokens = command.split(" ")
         if tokens[0] == "login":
-            handle_login(tokens=tokens)
+            handle_login_with_email(tokens)
             continue
 
         elif tokens[0] == "reg" or tokens[0] == "register":
             handle_reg(tokens=tokens)
             continue
 
+        elif tokens[0] == "logout":
+            UUID = ""
+            LOGGED_IN = False
+            continue
+
+        elif tokens[0] == "collections":
+            if (len(tokens) == 3  or len(tokens) == 2) and tokens[1] == "create":
+                handle_create_collection(tokens)
+                continue
+            if(len(tokens) == 2 and tokens[1] == "list"):
+                handle_list_collection()
+
+                
 
 
 

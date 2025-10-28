@@ -13,7 +13,7 @@ def create_collection(user_uuid, collection_name):
 
     try:
         row = execute_query(sql, (collection_uuid, user_uuid, collection_name), fetchone=True)
-        return row[0]
+        return row
     except:
         return None
 

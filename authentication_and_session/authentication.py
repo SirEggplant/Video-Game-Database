@@ -84,7 +84,6 @@ def register(username, password, firstname, lastname, email):
     """
     user_id = str(uuid.uuid4())
 
-
     try:
         value = execute_query(sql_insert, (user_id,username, password, firstname, lastname, email), fetchone=True)
         return value

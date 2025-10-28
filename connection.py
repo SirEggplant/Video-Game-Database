@@ -58,7 +58,7 @@ def execute_query(sql, params=(), fetchone=False, fetchall=False):
             conn.commit()
             return result
     except Exception as e:
-        print("Error executing query:", e)
+        # print("Error executing query:", e)
         return None
     finally:
         try:
