@@ -227,12 +227,5 @@ def main():
                 handle_list_collection()
 
                 
-
-
-
-
-    
-
-
 if __name__ =="__main__":
     main()
