@@ -27,7 +27,6 @@ CREATE TABLE "user" (
     last_access_date DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
--- Here
 CREATE TABLE collection(
     collection_UUID uuid NOT NULL PRIMARY KEY,
     user_UUID uuid NOT NULL REFERENCES "user"(user_UUID) ON DELETE CASCADE,
@@ -37,7 +36,6 @@ CREATE TABLE collection(
     UNIQUE(user_UUID, collection_name)
 );
 
--- Here
 CREATE TABLE follows(
     follower_user_UUID uuid NOT NULL REFERENCES "user"(user_UUID) ON DELETE CASCADE,
     followed_user_UUID uuid NOT NULL REFERENCES "user"(user_UUID) ON DELETE CASCADE,
@@ -50,7 +48,6 @@ CREATE TABLE platform(
     platform_name TEXT NOT NULL UNIQUE
 );
 
--- Here
 CREATE TABLE owns_platform(
     user_UUID uuid NOT NULL REFERENCES "user"(user_UUID) ON DELETE CASCADE,
     platform_UUID uuid NOT NULL REFERENCES platform(platform_UUID) ON DELETE CASCADE,
@@ -67,7 +64,6 @@ CREATE TABLE game(
     num_of_players INT NOT NULL DEFAULT 0
 );
 
--- Here
 CREATE TABLE collection_contains(
     collection_UUID uuid NOT NULL,
     game_UUID uuid NOT NULL,
@@ -76,7 +72,6 @@ CREATE TABLE collection_contains(
     PRIMARY KEY (collection_UUID, game_UUID)
 );
 
--- Here
 CREATE TABLE game_release(
     game_UUID uuid NOT NULL,
     platform_UUID uuid NOT NULL,
@@ -93,7 +88,6 @@ CREATE TABLE genre(
     genre_name TEXT NOT NULL UNIQUE
 );
 
--- Here
 CREATE TABLE game_fits_in_genre(
     game_UUID uuid NOT NULL,
     genre_UUID uuid NOT NULL,
@@ -108,7 +102,6 @@ CREATE TABLE contributor(
     contributor_name TEXT NOT NULL UNIQUE
 );
 
--- Here
 CREATE TABLE publishes(
     contributor_UUID uuid NOT NULL,
     game_UUID uuid NOT NULL,
@@ -117,7 +110,6 @@ CREATE TABLE publishes(
     PRIMARY KEY (contributor_UUID, game_UUID)
 );
 
--- Here
 CREATE TABLE develops(
     contributor_UUID uuid NOT NULL,
     game_UUID uuid NOT NULL,
@@ -126,7 +118,6 @@ CREATE TABLE develops(
     PRIMARY KEY (contributor_UUID, game_UUID)
 );
 
--- Here
 CREATE TABLE user_owns_game(
     user_UUID uuid NOT NULL,
     game_UUID uuid NOT NULL,
@@ -137,7 +128,6 @@ CREATE TABLE user_owns_game(
     PRIMARY KEY (user_UUID, game_UUID)
 );
 
--- Here
 CREATE TABLE user_plays(
     user_UUID uuid NOT NULL,
     game_UUID uuid NOT NULL,

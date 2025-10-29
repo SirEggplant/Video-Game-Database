@@ -76,7 +76,8 @@ def get_game_by_platform(platform: str):
         FROM game AS g
         JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
         JOIN platform AS p ON p.platform_uuid = gr.platform_uuid
-        WHERE EXTRACT( YEAR FROM p.platform_name) = %s 
+        WHERE p.platform_name ILIKE %s
+        ORDER BY g.title ASC
     """
 
     try:
@@ -92,7 +93,7 @@ def get_game_by_release_year(year: str):
         SELECT g.game_uuid, g.title, g.game_description, g.total_user_rating, g.esrb_rating, g.num_of_players
         FROM game AS g
         JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
-        WHERE gr.release_date = %s 
+        WHERE EXTRACT ( YEAR FROM gr.release_date) = %s 
 """
 
     try:
@@ -102,6 +103,27 @@ def get_game_by_release_year(year: str):
         print(f"Error fetching games by release year: {e}")
         return None
 
+def get_game_by_developer(tokens):
+
+    developer = " ".join(tokens[3:]).strip()
+
+    sql = """
+        SELECT g.game_uuid, g.title, g.game_description, g.total_user_rating, g.esrb_rating, g.num_of_players
+        FROM game AS g
+        JOIN develops AS d ON d.game_uuid = g.game_uuid
+        JOIN contributor AS c ON c.contributor_uuid = d.contributor_uuid
+        WHERE c.contributor_name ILIKE %s
+    """
+
+    try:
+        rows = execute_query(sql, (developer,), fetchall=True)
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by developer: {e}")
+        return None
+
+    
+
 def main():
     # print(create_game("the game", "it's a game", 'Everyone'))
     # print(get_game('2f973766-9419-4118-b397-fe9d7c2c1fe7'))
@@ -109,3 +131,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+# games search <field> <keyword>
+#     Search for games by title, genre, platform, release year, developer,
+#     publisher, or price range.
+#     Example: games search genre RPG

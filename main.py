@@ -7,6 +7,10 @@ from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
     create_collection, list_users_collections, add_game_to_collection, rename_collection, delete_collection, check_if_collection_exists
 )
 
+from SteamUltraDeluxHDRemixRemastered2.game_search_and_sorting.game import (
+    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer
+)
+
 
 UUID :str = ""
 LOGGED_IN : bool = False
@@ -214,6 +218,106 @@ def handle_delete_collection(tokens):
             "Collection does not exist"
             return
     
+# AI print_games function
+def print_games(rows):
+    # Accept either a single row tuple or a list of rows
+    if not rows:
+        print("No games found.")
+        return
+    if isinstance(rows, tuple):
+        rows = [rows]
+
+    # Expected order:
+    # 0: game_uuid, 1: title, 2: description, 3: total_user_rating, 4: esrb, 5: num_of_players
+    headers = ["ID", "Title", "ESRB", "Players", "Rating", "Description"]
+
+    # Truncation to keep the table readable
+    TITLE_MAX = 40
+    DESC_MAX = 60
+
+    def fmt_rating(x):
+        try:
+            return f"{float(x):.1f}"
+        except Exception:
+            return str(x)
+
+    processed = []
+    for r in rows:
+        gid = str(r[0])
+        title = (str(r[1]) if r[1] is not None else "")[:TITLE_MAX]
+        esrb = str(r[4]) if r[4] is not None else ""
+        players = str(r[5]) if r[5] is not None else "0"
+        rating = fmt_rating(r[3])
+        desc = (str(r[2]) if r[2] is not None else "")[:DESC_MAX]
+        processed.append((gid, title, esrb, players, rating, desc))
+
+    # Compute column widths
+    id_w = max(len(headers[0]), max(len(p[0]) for p in processed))
+    title_w = max(len(headers[1]), max(len(p[1]) for p in processed))
+    esrb_w = max(len(headers[2]), max(len(p[2]) for p in processed))
+    players_w = max(len(headers[3]), max(len(p[3]) for p in processed))
+    rating_w = max(len(headers[4]), max(len(p[4]) for p in processed))
+    desc_w = max(len(headers[5]), max(len(p[5]) for p in processed))
+
+    # Build separators
+    separator = (
+        f"+-{'-'*id_w}-+-{'-'*title_w}-+-{'-'*esrb_w}-+-{'-'*players_w}-+-{'-'*rating_w}-+-{'-'*desc_w}-+"
+    )
+
+    # Print header
+    print(separator)
+    print(
+        f"| {headers[0]:<{id_w}} | {headers[1]:<{title_w}} | {headers[2]:<{esrb_w}} | "
+        f"{headers[3]:<{players_w}} | {headers[4]:<{rating_w}} | {headers[5]:<{desc_w}} |"
+    )
+    print(separator)
+
+    # Print rows
+    for gid, title, esrb, players, rating, desc in processed:
+        print(
+            f"| {gid:<{id_w}} | {title:<{title_w}} | {esrb:<{esrb_w}} | "
+            f"{players:<{players_w}} | {rating:<{rating_w}} | {desc:<{desc_w}} |"
+        )
+
+    print(separator)
+
+
+
+def handle_game_search(tokens):
+    if(len(tokens) <  4):
+        print("""
+games search <field> <keyword>
+    Search for games by title, genre, platform, release year, developer,
+    publisher, or price range.
+    Example: games search genre RPG
+              """)
+    else:
+        term = tokens[2].lower()
+        match term:
+            case "genre":
+                rows = get_game_by_genre(tokens[3])
+                print_games(rows=rows)
+                return
+            case "title":
+                rows = get_game_by_title(tokens[3])
+                print_games(rows=rows)
+                return
+            case "platform":
+                rows = get_game_by_platform(tokens[3])
+                print_games(rows=rows)
+                return
+            case "year":
+                rows = get_game_by_release_year(tokens[3])
+                print_games(rows=rows)
+                return
+            case "developer":
+                rows = get_game_by_developer(tokens)
+                print_games(rows=rows)
+                return
+            case "dev":
+                rows = get_game_by_developer(tokens)
+                print_games(rows=rows)
+                return
 
 
 def check_if_logged_in():
@@ -250,13 +354,19 @@ def main():
         elif tokens[0].lower() == "collections":
             if (len(tokens) == 3  or len(tokens) == 2) and tokens[1] == "create":
                 handle_create_collection(tokens)
-                continue
-            if(len(tokens) == 2 and tokens[1] == "list"):
+            elif(len(tokens) == 2 and tokens[1] == "list"):
                 handle_list_collection()
-            if(tokens[1].lower() == "rename"):
+            elif(tokens[1].lower() == "rename"):
                 handle_rename_collection(tokens)
-            if(tokens[1].lower() == "delete"):
+            elif(tokens[1].lower() == "delete"):
                 handle_delete_collection(tokens)
+            continue
+            
+        elif tokens[0].lower() == "game":
+            if(len(tokens) >= 2 and tokens[1] == "search"):
+                handle_game_search(tokens=tokens)
+                continue
+        
 
                 
 if __name__ =="__main__":
