@@ -11,6 +11,10 @@ from SteamUltraDeluxHDRemixRemastered2.game_search_and_sorting.game import (
     get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer
 )
 
+from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
+    print_games
+)
+
 
 UUID :str = ""
 LOGGED_IN : bool = False
@@ -218,68 +222,6 @@ def handle_delete_collection(tokens):
             "Collection does not exist"
             return
     
-# AI print_games function
-def print_games(rows):
-    # Accept either a single row tuple or a list of rows
-    if not rows:
-        print("No games found.")
-        return
-    if isinstance(rows, tuple):
-        rows = [rows]
-
-    # Expected order:
-    # 0: game_uuid, 1: title, 2: description, 3: total_user_rating, 4: esrb, 5: num_of_players
-    headers = ["ID", "Title", "ESRB", "Players", "Rating", "Description"]
-
-    # Truncation to keep the table readable
-    TITLE_MAX = 40
-    DESC_MAX = 60
-
-    def fmt_rating(x):
-        try:
-            return f"{float(x):.1f}"
-        except Exception:
-            return str(x)
-
-    processed = []
-    for r in rows:
-        gid = str(r[0])
-        title = (str(r[1]) if r[1] is not None else "")[:TITLE_MAX]
-        esrb = str(r[4]) if r[4] is not None else ""
-        players = str(r[5]) if r[5] is not None else "0"
-        rating = fmt_rating(r[3])
-        desc = (str(r[2]) if r[2] is not None else "")[:DESC_MAX]
-        processed.append((gid, title, esrb, players, rating, desc))
-
-    # Compute column widths
-    id_w = max(len(headers[0]), max(len(p[0]) for p in processed))
-    title_w = max(len(headers[1]), max(len(p[1]) for p in processed))
-    esrb_w = max(len(headers[2]), max(len(p[2]) for p in processed))
-    players_w = max(len(headers[3]), max(len(p[3]) for p in processed))
-    rating_w = max(len(headers[4]), max(len(p[4]) for p in processed))
-    desc_w = max(len(headers[5]), max(len(p[5]) for p in processed))
-
-    # Build separators
-    separator = (
-        f"+-{'-'*id_w}-+-{'-'*title_w}-+-{'-'*esrb_w}-+-{'-'*players_w}-+-{'-'*rating_w}-+-{'-'*desc_w}-+"
-    )
-
-    # Print header
-    print(separator)
-    print(
-        f"| {headers[0]:<{id_w}} | {headers[1]:<{title_w}} | {headers[2]:<{esrb_w}} | "
-        f"{headers[3]:<{players_w}} | {headers[4]:<{rating_w}} | {headers[5]:<{desc_w}} |"
-    )
-    print(separator)
-
-    # Print rows
-    for gid, title, esrb, players, rating, desc in processed:
-        print(
-            f"| {gid:<{id_w}} | {title:<{title_w}} | {esrb:<{esrb_w}} | "
-            f"{players:<{players_w}} | {rating:<{rating_w}} | {desc:<{desc_w}} |"
-        )
-
-    print(separator)
 
 
 
@@ -299,7 +241,7 @@ games search <field> <keyword>
                 print_games(rows=rows)
                 return
             case "title":
-                rows = get_game_by_title(tokens[3])
+                rows = get_game_by_title(tokens)
                 print_games(rows=rows)
                 return
             case "platform":

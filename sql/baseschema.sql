@@ -138,3 +138,36 @@ CREATE TABLE user_plays(
     FOREIGN KEY (game_UUID) REFERENCES game(game_UUID) ON DELETE CASCADE,
     PRIMARY KEY (user_UUID, game_UUID, played_at)
 );
+
+
+
+CREATE VIEW game_listing AS SELECT
+    g.game_uuid,
+    g.title,
+    g.game_description,
+    g.esrb_rating,
+    g.total_user_rating,
+    g.num_of_players,
+    MIN(gr.release_date) AS first_release_date
+    EXTRACT(YEAR FROM MIN(gr.release_date))::INT AS release_year,
+    MIN(gr.price) AS min_price,
+    MAX(gr.price) AS max_price,
+
+    ARRAY_AGG(DISTINCT p.platform_name) AS platforms
+    ARRAY_AGG(DISTINCT ge.genre_name) AS genres,
+    ARRAY_AGG(DISTINCT devc.contributor_name) AS developers,
+    ARRAY_AGG(DISTINCT pubc.contributor_name) AS publishers,
+
+    (SELECT SUM(up.time_played) FROM user_plays AS up    
+    WHERE up.game_uuid = g.game_uuid) AS total_playtime_minutes
+
+    FROM game g
+    LEFT JOIN game_release AS gr ON gr.game_uuid = g.game_uuid
+    LEFT JOIN platform AS p ON p.platform_uuid = gr.platform_uuid
+    LEFT JOIN game_fits_in_genre AS gf ON gf.game_uuid = g.game_uuid
+    LEFT JOIN genre AS ge ON ge.genre_uuid = gf.genre_uuid
+    LEFT JOIN develops AS d ON d.game_uuid = g.game_uuid
+    LEFT JOIN contributor AS devc ON devc.contributor_uuid = d.contributor_uuid
+    LEFT JOIN publishes AS pub ON pub.game_uuid = g.game_uuid
+    LEFT JOIN contributor AS pubc ON pubc.contributor_uuid = pub.contributor_uuid
+    GROUP BY g.game_uuid, g.title, g.game_description, g.esrb_rating, g.total_user_rating, g.num_of_players;

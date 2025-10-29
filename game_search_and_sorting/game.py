@@ -32,7 +32,9 @@ def create_game(game_title: str, game_description: str, game_esrb : str):
 def get_game_by_uuid(game_uuid : str):
 
     sql = """
-        SELECT * FROM game WHERE game_uuid = %s
+        SELECT * FROM game_listing AS 
+        
+        WHERE game_uuid = %s
     """
     try:
         row = execute_query(sql, (game_uuid,), fetchone=True)
@@ -41,11 +43,18 @@ def get_game_by_uuid(game_uuid : str):
         return None
 
 
-def get_game_by_title(title :str):
+def get_game_by_title(tokens):
+
+    title = " ".join(tokens[3:]).strip()
     sql = """
-        SELECT * FROM game 
-        WHERE title ILIKE
+        SELECT game_uuid, title, platforms, developers, publishers,
+               total_playtime_minutes, esrb_rating, total_user_rating,
+               first_release_date, release_year, min_price, max_price, genres
+        FROM game_listing
+        WHERE title ILIKE %s
+        ORDER BY title DESC
     """
+
 
     try:
         rows = execute_query(sql, (f"%{title}%",), fetchall=True)
@@ -55,11 +64,17 @@ def get_game_by_title(title :str):
     
 def get_game_by_genre(genre :str):
     sql = """
-        SELECT g.game_uuid, g.title, g.game_description, g.total_user_rating, g.esrb_rating, g.num_of_players
-        FROM game AS g
-        JOIN game_fits_in_genre AS gg ON gg.game_uuid = g.game_uuid
-        JOIN genre ON gg.genre_uuid = genre.genre_uuid 
-        WHERE genre.genre_name = %s;
+        SELECT game_uuid, title, platforms, developers, publishers,
+            total_playtime_minutes, esrb_rating, total_user_rating,
+            first_release_date, release_year, min_price, max_price, genres
+        FROM game_listing
+        WHERE game_uuid IN (
+            SELECT g.game_uuid
+            FROM game AS g
+            JOIN game_fits_in_genre AS gg ON gg.game_uuid = g.game_uuid
+            JOIN genre ON gg.genre_uuid = genre.genre_uuid
+            WHERE genre.genre_name = %s
+        )
     """
 
     try:
@@ -72,12 +87,20 @@ def get_game_by_genre(genre :str):
 
 def get_game_by_platform(platform: str):
     sql = """
-        SELECT g.game_uuid, g.title, g.game_description, g.total_user_rating, g.esrb_rating, g.num_of_players
-        FROM game AS g
-        JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
-        JOIN platform AS p ON p.platform_uuid = gr.platform_uuid
-        WHERE p.platform_name ILIKE %s
-        ORDER BY g.title ASC
+
+        SELECT game_uuid, title, platforms, developers, publishers,
+            total_playtime_minutes, esrb_rating, total_user_rating,
+            first_release_date, release_year, min_price, max_price, genres
+        FROM game_listing
+        WHERE game_uuid IN (
+            SELECT g.game_uuid
+            FROM game AS g
+            JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
+            JOIN platform AS p ON p.platform_uuid = gr.platform_uuid
+            WHERE p.platform_name ILIKE %s
+            ORDER BY g.title DESC
+        )
+
     """
 
     try:
@@ -90,10 +113,17 @@ def get_game_by_platform(platform: str):
 
 def get_game_by_release_year(year: str):
     sql = """
-        SELECT g.game_uuid, g.title, g.game_description, g.total_user_rating, g.esrb_rating, g.num_of_players
-        FROM game AS g
-        JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
-        WHERE EXTRACT ( YEAR FROM gr.release_date) = %s 
+
+        SELECT game_uuid, title, platforms, developers, publishers,
+            total_playtime_minutes, esrb_rating, total_user_rating,
+            first_release_date, release_year, min_price, max_price, genres
+        FROM game_listing
+            WHERE game_uuid IN (
+            SELECT g.game_uuid
+            FROM game AS g
+            JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
+            WHERE EXTRACT ( YEAR FROM gr.release_date) = 2023
+        )
 """
 
     try:
@@ -108,11 +138,16 @@ def get_game_by_developer(tokens):
     developer = " ".join(tokens[3:]).strip()
 
     sql = """
-        SELECT g.game_uuid, g.title, g.game_description, g.total_user_rating, g.esrb_rating, g.num_of_players
+        SELECT game_uuid, title, platforms, developers, publishers,
+            total_playtime_minutes, esrb_rating, total_user_rating,
+            first_release_date, release_year, min_price, max_price, genres
+        FROM game_listing
+        WHERE game_uuid IN (
+        SELECT g.game_uuid
         FROM game AS g
         JOIN develops AS d ON d.game_uuid = g.game_uuid
         JOIN contributor AS c ON c.contributor_uuid = d.contributor_uuid
-        WHERE c.contributor_name ILIKE %s
+        WHERE c.contributor_name ILIKE %s)
     """
 
     try:
@@ -125,8 +160,7 @@ def get_game_by_developer(tokens):
     
 
 def main():
-    # print(create_game("the game", "it's a game", 'Everyone'))
-    # print(get_game('2f973766-9419-4118-b397-fe9d7c2c1fe7'))
+
     pass
 
 if __name__ == "__main__":
