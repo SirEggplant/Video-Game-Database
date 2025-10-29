@@ -27,7 +27,10 @@ def list_users_collections(user_uuid: str):
     except:
         return None
     
-def add_game_to_collection(game_uuid: str, collection_uuid: str):
+def add_game_to_collection(user_uuid: str, game_uuid: str, collection_uuid: str):
+    if not isOwnedBy(user_uuid, game_uuid, collection_uuid):
+        print(user_uuid + " does not own the game " + game_uuid + "!!!")
+
     sql_insert = """
         INSERT INTO collection_contains (collection_uuid, game_uuid)
         VALUES (%s, %s)
@@ -39,6 +42,7 @@ def add_game_to_collection(game_uuid: str, collection_uuid: str):
         WHERE collection_uuid = %s
         RETURNING collection_uuid, num_of_games
     """
+
     with connect_to_db() as conn:
         with conn.cursor() as cur:
             cur.execute(sql_insert, (collection_uuid, game_uuid))
@@ -47,6 +51,29 @@ def add_game_to_collection(game_uuid: str, collection_uuid: str):
                 return None
             cur.execute(sql_update, (collection_uuid,))
             return cur.fetchone()
+        
+def isOwnedBy(user_uuid, game_uuid):
+    sql_select = """
+    select * from collection where user_uuid = %s and game_uuid = %s
+    """
+
+    conn, server = connect_to_db()
+    if not conn or not server:
+        return None
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select, (user_uuid, game_uuid))
+            game = cur.fetchone()
+
+            if not game:
+                return False
+            
+            return True
+    except:
+        return None
+
+    return False
 
 def rename_collection(user_uuid: str, old_name: str, new_name: str):
     sql_update = """
