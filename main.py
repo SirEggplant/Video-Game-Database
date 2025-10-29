@@ -8,7 +8,7 @@ from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
 )
 
 from SteamUltraDeluxHDRemixRemastered2.game_search_and_sorting.game import (
-    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher
+    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than
 )
 
 from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
@@ -224,6 +224,8 @@ def handle_delete_collection(tokens):
     
 
 
+# TODO: ADD PRINT STATEMENTS FOR INSTRUCTIONS
+
 
 def handle_game_search(tokens):
     if(len(tokens) <  4):
@@ -268,6 +270,19 @@ games search <field> <keyword>
                 rows = get_game_by_publisher(tokens)
                 print_games(rows=rows)
                 return
+            case "price":
+                if(len(tokens) == 4):
+                    rows = get_game_by_price_lower_than(tokens[3])
+                    print_games(rows=rows)
+                    return  
+                elif(len(tokens) == 5):
+                    rows = get_game_by_price_between(tokens[3], tokens[4])
+                    print_games(rows=rows)
+                    return
+                else:
+                    # TODO: PRINT STATEMENT HERE
+                    print()
+                    return
 
 
 def check_if_logged_in():

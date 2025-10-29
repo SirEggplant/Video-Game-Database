@@ -14,6 +14,8 @@ esrb = {'Early Childhood',
       'Rating Pending'}
 
 
+SQL = ""
+
 def create_game(game_title: str, game_description: str, game_esrb : str):
 
     if game_esrb not in esrb:
@@ -183,6 +185,55 @@ def get_game_by_publisher(tokens):
         return None
 
     
+def get_game_by_price_lower_than(price: str):
+    
+    intPrice = int(price)
+
+    sql = """
+        SELECT game_uuid, title, platforms, developers, publishers,
+            total_playtime_minutes, esrb_rating, total_user_rating,
+            first_release_date, release_year, min_price, max_price, genres
+        FROM game_listing
+        WHERE game_uuid IN (
+        SELECT g.game_uuid
+        FROM game AS g
+        JOIN game_release AS r ON g.game_uuid = r.game_uuid
+        WHERE r.price < %s)
+    """
+
+    try:
+        rows = execute_query(sql, (intPrice,), fetchall=True)
+       
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by developer: {e}")
+        return None
+
+def get_game_by_price_between(lower_price: str, upper_price: str):
+
+    actual_lower = int(lower_price)
+    actual_upper= int(upper_price)
+
+    sql = """
+        SELECT game_uuid, title, platforms, developers, publishers,
+            total_playtime_minutes, esrb_rating, total_user_rating,
+            first_release_date, release_year, min_price, max_price, genres
+        FROM game_listing
+        WHERE game_uuid IN (
+        SELECT g.game_uuid
+        FROM game AS g
+        JOIN game_release AS r ON g.game_uuid = r.game_uuid
+        WHERE r.price BETWEEN %s AND %s)
+    """
+
+    try:
+        rows = execute_query(sql, (actual_lower, actual_upper,), fetchall=True)
+       
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by developer: {e}")
+        return None
+
 
 def main():
 
