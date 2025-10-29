@@ -2,7 +2,7 @@ import psycopg # pyright: ignore[reportMissingImports]
 import uuid
 from SteamUltraDeluxHDRemixRemastered2.connection import execute_query
 
-esrb = {'Early Childhood',
+esrbs = {'Early Childhood',
       'Everyone',
       'Everyone 10+',
       'Teen',
@@ -10,6 +10,14 @@ esrb = {'Early Childhood',
       'Adults Only 18+',
       'Rating Pending'}
 
+esrbs_lower = {'early childhood',
+      'everyone',
+      'everyone 10+',
+      'teen',
+      'mature 17+',
+      'adults only 18+',
+      'rating pending'
+}
 
 SQL_STORED = ""
 PARAMS_STORED = ""
@@ -47,7 +55,7 @@ def sort_by(field: str, order: str):
 
 def create_game(game_title: str, game_description: str, game_esrb : str):
 
-    if game_esrb not in esrb:
+    if game_esrb not in esrbs:
         return None
 
     sql = """
@@ -269,18 +277,27 @@ def get_game_by_price_between(lower_price: str, upper_price: str):
         print(f"Error fetching games by developer: {e}")
         return None
 
-
+def get_games_by_esrb(esrb: str):
+    sql = """
+    SELECT game_uuid, title, platforms, developers, publishers,
+        total_playtime_minutes, esrb_rating, total_user_rating,
+        first_release_date, release_year, min_price, max_price, genres
+    FROM game_listing
+    WHERE esrb_rating::text ILIKE %s;
+"""
+    try:
+        rows = execute_query(sql=sql, params=(f"%{esrb}%",), fetchall=True)    
+        store_previous_sql_query(sql=sql, params=(f"%{esrb}%",))
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by developer: {e}")
+        return None
+   
 
 def main():
-
     pass
 
 if __name__ == "__main__":
     main()
 
 
-
-# games search <field> <keyword>
-#     Search for games by title, genre, platform, release year, developer,
-#     publisher, or price range.
-#     Example: games search genre RPG

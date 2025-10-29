@@ -8,7 +8,7 @@ from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
 )
 
 from SteamUltraDeluxHDRemixRemastered2.game_search_and_sorting.game import (
-    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by
+    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
 )
 
 from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
@@ -282,6 +282,11 @@ games search <field> <keyword>
                 else:
                     # TODO: PRINT STATEMENT HERE
                     print()
+                    return
+            case "esrb":
+                if(len(tokens) == 4):
+                    rows = get_games_by_esrb(tokens[3])
+                    print_games(rows=rows)
                     return
 
 # ideo game name,
