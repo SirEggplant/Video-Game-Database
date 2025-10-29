@@ -15,6 +15,17 @@ esrb = {'Early Childhood',
 
 
 SQL = ""
+PARAMS = ""
+
+
+def store_previous_sql_query(sql: str, params):
+    global SQL, PARAMS
+
+    SQL = sql
+    PARAMS = params
+
+def sort_by(field: str, order: str):
+    pass
 
 def create_game(game_title: str, game_description: str, game_esrb : str):
 
@@ -40,6 +51,7 @@ def get_game_by_uuid(game_uuid : str):
         
         WHERE game_uuid = %s
     """
+
     try:
         row = execute_query(sql, (game_uuid,), fetchone=True)
         return row
