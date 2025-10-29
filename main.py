@@ -8,7 +8,7 @@ from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
 )
 
 from SteamUltraDeluxHDRemixRemastered2.game_search_and_sorting.game import (
-    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer
+    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher
 )
 
 from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
@@ -258,6 +258,14 @@ games search <field> <keyword>
                 return
             case "dev":
                 rows = get_game_by_developer(tokens)
+                print_games(rows=rows)
+                return
+            case "publisher":
+                rows = get_game_by_publisher(tokens)
+                print_games(rows=rows)
+                return
+            case "pub":
+                rows = get_game_by_publisher(tokens)
                 print_games(rows=rows)
                 return
 

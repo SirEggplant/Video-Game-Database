@@ -1,136 +1,130 @@
+import shutil
+from datetime import date, datetime
+from decimal import Decimal
 
+# ---- FIX: define COLS first ----
+COLS = [
+    ("UUID",           "uuid",    0,  8,  30),
+    ("Title",          "text",   10, 10,  28),
+    ("Platforms",      "list",    5,  6,  20),
+    ("Developers",     "list",    2,  6,  18),
+    ("Publishers",     "list",    2,  6,  18),
+    ("Playtime",       "minutes", 4,  5,   8),
+    ("ESRB",           "text",    3,  4,   6),
+    ("User ★",         "rating",  8,  4,   6),
+    ("First Release",  "date",    3,  8,  10),
+    ("Year",           "int",     7,  4,   4),
+    ("Min $",          "money",   6,  5,   7),
+    ("Max $",          "money",   6,  5,   7),
+    ("Genres",         "list",    4,  6,  16),
+]
+COL_ORDER = [c[0] for c in COLS]  # now defined properly
 
-# AI print_games function (updated for game_listing view output)
-def print_games(rows):
-    """
-    Supports new shape (from game_listing-based SELECT):
-      0: game_uuid
-      1: title
-      2: platforms (array)
-      3: developers (array)
-      4: publishers (array)
-      5: total_playtime_minutes (int)
-      6: esrb_rating
-      7: total_user_rating (float)
-      8: first_release_date (date)
-      9: released_year (int)
-      10: min_price (numeric)
-      11: max_price (numeric)
-      12: genres (array)
-    Falls back to the old shape if detected.
-    """
+# ---- helpers ----
+def _to_str(x): return "" if x is None else str(x)
+
+def _fmt_list(x):
+    if x is None: return ""
+    if isinstance(x, (list, tuple, set)):
+        return ", ".join(_to_str(i) for i in x)
+    s = _to_str(x)
+    if s.startswith("{") and s.endswith("}"):
+        s = s[1:-1].replace('"', '')
+        return ", ".join(part for part in s.split(",") if part)
+    return s
+
+def _fmt_minutes(m):
+    if m in (None, ""): return ""
+    try: m = int(m)
+    except: return _to_str(m)
+    h, mm = divmod(m, 60)
+    return f"{h}h {mm:02d}m"
+
+def _fmt_rating(r):
+    if r in (None, ""): return ""
+    try: return f"{float(r):.1f}"
+    except: return _to_str(r)
+
+def _fmt_date(d):
+    if d is None: return ""
+    if isinstance(d, (date, datetime)): return d.strftime("%Y-%m-%d")
+    return _to_str(d).split(" ")[0]
+
+def _fmt_money(x):
+    if x in (None, ""): return ""
+    try: return f"${Decimal(str(x)):.2f}"
+    except: return _to_str(x)
+
+_FORMATTERS = {
+    "list": _fmt_list, "minutes": _fmt_minutes, "rating": _fmt_rating,
+    "date": _fmt_date, "money": _fmt_money, "text": _to_str, "uuid": _to_str, "int": _to_str
+}
+
+def _clamp(s, w): return s if len(s) <= w else (s[:max(1, w-1)] + "…")
+
+# ---- main function ----
+def print_games(rows, *, show_uuid=False, view="auto", columns=None):
     if not rows:
         print("No games found.")
         return
-    if isinstance(rows, tuple):
-        rows = [rows]
+    if len(rows[0]) != 13:
+        raise ValueError(f"Expected 13 columns, got {len(rows[0])}.")
 
-    # Helpers
-    def fmt_list(x, max_items=3):
-        if x is None:
-            return "-"
-        try:
-            arr = list(x)
-        except Exception:
-            return str(x)
-        if not arr:
-            return "-"
-        if len(arr) <= max_items:
-            return ", ".join(str(i) for i in arr)
-        return ", ".join(str(i) for i in arr[:max_items]) + "…"
+    # Build base spec
+    spec = [c for c in COLS if (show_uuid or c[0] != "UUID")]
+    if columns:
+        want = set(columns)
+        spec = [c for c in spec if c[0] in want]
+    elif view == "compact":
+        keep = {"Title", "User ★", "Year", "Min $", "Genres"}
+        spec = [c for c in spec if c[0] in keep]
+    # else: auto/wide keep spec as-is
 
-    def fmt_hhmm(minutes):
-        try:
-            m = int(minutes or 0)
-        except Exception:
-            m = 0
-        h = m // 60
-        mm = m % 60
-        return f"{h:02d}:{mm:02d}"
+    # Prepare data strings per column
+    name_to_idx = {name: i for i, name in enumerate(COL_ORDER)}
+    col_names = [name for (name, *_rest) in spec]
+    kinds     = [kind for (_n, kind, *_r) in spec]
+    mins      = [mn  for (_n, _k, _p, mn, _pw) in spec]
+    prefs     = [pw  for (_n, _k, _p, _mn, pw) in spec]
+    prios     = [pr  for (_n, _k, pr, _mn, _pw) in spec]
 
-    def fmt_price(lo, hi):
-        try:
-            lo = float(lo) if lo is not None else None
-        except Exception:
-            lo = None
-        try:
-            hi = float(hi) if hi is not None else None
-        except Exception:
-            hi = None
-        if lo is None and hi is None:
-            return "-"
-        if lo is None:
-            return f"${hi:.2f}"
-        if hi is None or abs(hi - lo) < 1e-9:
-            return f"${lo:.2f}"
-        return f"${lo:.2f}–${hi:.2f}"
+    fmt = [_FORMATTERS[k] for k in kinds]
+    table = []
+    for r in rows:
+        vals = []
+        for i, name in enumerate(col_names):
+            raw = r[name_to_idx[name]]
+            vals.append(fmt[i](raw))
+        table.append(vals)
 
-    def short_id(uid):
-        s = str(uid)
-        return s[:8] if len(s) > 8 else s
+    # Compute widths
+    widths = [max(len(col_names[i]), min(prefs[i], max((len(row[i]) for row in table), default=prefs[i]))) for i in range(len(col_names))]
+    minw   = [max(mins[i], len(col_names[i])) for i in range(len(col_names))]
 
-    # Detect row shape (new vs old)
-    new_shape = len(rows[0]) >= 13
+    term_w = shutil.get_terminal_size((100, 24)).columns
+    def total_width(ws): return 3 + sum(ws) + 3*(len(ws)-1) + 1
 
-    processed = []
-    if new_shape:
-        # New order from view-backed queries
-        for r in rows:
-            gid          = r[0]
-            title        = r[1]
-            platforms    = fmt_list(r[2])
-            developers   = fmt_list(r[3])
-            publishers   = fmt_list(r[4])
-            playtime     = fmt_hhmm(r[5])
-            esrb         = r[6]
-            user_rating  = f"{float(r[7]):.1f}" if r[7] is not None else "-"
-            released     = str(r[9]) if r[9] is not None else (str(r[8]) if r[8] else "-")
-            price        = fmt_price(r[10], r[11])
-            processed.append((
-                title or "",
-                platforms,
-                developers,
-                publishers,
-                esrb or "",
-                user_rating,
-                playtime,
-                released,
-                price,
-                short_id(gid),
-            ))
-    else:
-        # Old shape fallback: 0 id, 1 title, 2 desc, 3 total_user_rating, 4 esrb, 5 players
-        for r in rows:
-            gid          = r[0]
-            title        = r[1]
-            esrb         = r[4] if len(r) > 4 else ""
-            user_rating  = f"{float(r[3]):.1f}" if len(r) > 3 and r[3] is not None else "-"
-            processed.append((
-                title or "",
-                "-", "-", "-",                # platforms, developers, publishers (unknown)
-                esrb or "",
-                user_rating,
-                "00:00",                      # no playtime in old shape
-                "-",                          # released
-                "-",                          # price
-                short_id(gid),
-            ))
+    ws = widths[:]
 
-    headers = ["Title", "Platforms", "Developers", "Publishers", "ESRB", "User★", "Playtime", "Released", "Price", "ID"]
+    # shrink columns
+    if total_width(ws) > term_w:
+        order = sorted(range(len(ws)), key=lambda i: prios[i])
+        for i in order:
+            while ws[i] > minw[i] and total_width(ws) > term_w:
+                ws[i] -= 1
 
-    # Column widths
-    col_w = [len(h) for h in headers]
-    for row in processed:
-        for i, val in enumerate(row):
-            col_w[i] = max(col_w[i], len(str(val)))
+    # drop columns if needed
+    if total_width(ws) > term_w:
+        droppable = [i for i,_ in sorted(enumerate(prios), key=lambda t: t[1]) if col_names[i] != "Title"]
+        for i in droppable:
+            for row in table: row.pop(i)
+            prios.pop(i); ws.pop(i); minw.pop(i); prefs.pop(i); kinds.pop(i); col_names.pop(i)
+            if total_width(ws) <= term_w: break
 
-    # Build separator
-    sep = "+-" + "-+-".join("-"*w for w in col_w) + "-+"
-
-    # Print table
+    sep = "+-" + "-+-".join("-"*w for w in ws) + "-+"
     print(sep)
-    print("| " + " | ".join(f"{headers[i]:<{col_w[i]}}" for i in range(len(headers))) + " |")
+    print("| " + " | ".join(f"{_clamp(col_names[i], ws[i]):<{ws[i]}}" for i in range(len(ws))) + " |")
     print(sep)
-    for row in processed:
-        print("| " + " | ".join(f"{str(row[i]):<{col_w[i]}}" for i in range(len(headers))) + " |")
+    for row in table:
+        print("| " + " | ".join(f"{_clamp(row[i], ws[i]):<{ws[i]}}" for i in range(len(ws))) + " |")
     print(sep)

@@ -2,6 +2,8 @@ import psycopg # pyright: ignore[reportMissingImports]
 import uuid
 from SteamUltraDeluxHDRemixRemastered2.connection import execute_query
 
+from datetime import date, datetime
+from decimal import Decimal
 
 esrb = {'Early Childhood',
       'Everyone',
@@ -73,12 +75,12 @@ def get_game_by_genre(genre :str):
             FROM game AS g
             JOIN game_fits_in_genre AS gg ON gg.game_uuid = g.game_uuid
             JOIN genre ON gg.genre_uuid = genre.genre_uuid
-            WHERE genre.genre_name = %s
+            WHERE genre.genre_name ILIKE %s
         )
     """
 
     try:
-        rows = execute_query(sql, (genre,), fetchall=True)
+        rows = execute_query(sql, (f"%{genre}%",), fetchall=True)
         return rows
     except Exception as e:
         print(f"Error fetching games by genre: {e}")
@@ -104,7 +106,7 @@ def get_game_by_platform(platform: str):
     """
 
     try:
-        rows = execute_query(sql, (platform,), fetchall=True)
+        rows = execute_query(sql, (f"%{platform}%",), fetchall=True)
         return rows
     except Exception as e:
         print(f"Error fetching games by platform: {e}")
@@ -122,9 +124,8 @@ def get_game_by_release_year(year: str):
             SELECT g.game_uuid
             FROM game AS g
             JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
-            WHERE EXTRACT ( YEAR FROM gr.release_date) = 2023
-        )
-"""
+            WHERE EXTRACT ( YEAR FROM gr.release_date) = %s)
+    """
 
     try:
         rows = execute_query(sql, (year,), fetchall=True)
@@ -151,7 +152,31 @@ def get_game_by_developer(tokens):
     """
 
     try:
-        rows = execute_query(sql, (developer,), fetchall=True)
+        rows = execute_query(sql, (f"%{developer}%",), fetchall=True)
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by developer: {e}")
+        return None
+
+def get_game_by_publisher(tokens):
+    publisher = " ".join(tokens[3:]).strip()
+
+    sql = """
+        SELECT game_uuid, title, platforms, developers, publishers,
+            total_playtime_minutes, esrb_rating, total_user_rating,
+            first_release_date, release_year, min_price, max_price, genres
+        FROM game_listing
+        WHERE game_uuid IN (
+        SELECT g.game_uuid
+        FROM game AS g
+        JOIN publishes AS p ON p.game_uuid = g.game_uuid
+        JOIN contributor AS c ON c.contributor_uuid = p.contributor_uuid
+        WHERE c.contributor_name ILIKE %s)
+    """
+
+    try:
+        rows = execute_query(sql, (f"%{publisher}%",), fetchall=True)
+       
         return rows
     except Exception as e:
         print(f"Error fetching games by developer: {e}")
