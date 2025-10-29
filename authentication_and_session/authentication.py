@@ -1,5 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
+import hashlib
 from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
 
 
@@ -14,6 +15,7 @@ def login_with_user(username: str, password: str):
         UPDATE "user" SET last_access_date = CURRENT_DATE 
         WHERE username = %s
 """
+    password = getHashedPassword(username, password)
 
     conn, server = connect_to_db()
     if not conn or not server:
@@ -49,6 +51,7 @@ def login_with_email(email: str, password: str):
         UPDATE "user" SET last_access_date = CURRENT_DATE 
         WHERE email = %s
 """
+    password = getHashedPassword(email, password)
 
     conn, server = connect_to_db()
     if not conn or not server:
@@ -83,13 +86,44 @@ def register(username, password, firstname, lastname, email):
         RETURNING * 
     """
     user_id = str(uuid.uuid4())
+    password = getHashedPassword(username, password)
 
     try:
         value = execute_query(sql_insert, (user_id,username, password, firstname, lastname, email), fetchone=True)
         return value
     except:
         return None
-            
+
+def getHashedPassword(user, password):
+    sql_select = 'SELECT user_id FROM "user" WHERE username = %s OR email = %s'
+
+    conn, server = connect_to_db()
+    if not conn or not server:
+        return None
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select, (user, user))
+            user = cur.fetchone()
+            if not user:
+                return None
+
+            salt = str(user['user_id'])
+            salted_password = password + salt
+            hashed_password = hashlib.sha512(salted_password.encode()).hexdigest()
+
+            return hashed_password
+    except:
+        return None
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+        try:
+            server.stop()
+        except Exception:
+            pass
 
 
 
