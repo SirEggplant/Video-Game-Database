@@ -65,10 +65,42 @@ def get_game_by_genre(genre :str):
     try:
         rows = execute_query(sql, (genre,), fetchall=True)
         return rows
-    except:
+    except Exception as e:
+        print(f"Error fetching games by genre: {e}")
         return None
 
 
+def get_game_by_platform(platform: str):
+    sql = """
+        SELECT g.game_uuid, g.title, g.game_description, g.total_user_rating, g.esrb_rating, g.num_of_players
+        FROM game AS g
+        JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
+        JOIN platform AS p ON p.platform_uuid = gr.platform_uuid
+        WHERE EXTRACT( YEAR FROM p.platform_name) = %s 
+    """
+
+    try:
+        rows = execute_query(sql, (platform,), fetchall=True)
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by platform: {e}")
+        return None
+    
+
+def get_game_by_release_year(year: str):
+    sql = """
+        SELECT g.game_uuid, g.title, g.game_description, g.total_user_rating, g.esrb_rating, g.num_of_players
+        FROM game AS g
+        JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
+        WHERE gr.release_date = %s 
+"""
+
+    try:
+        rows = execute_query(sql, (year,), fetchall=True)
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by release year: {e}")
+        return None
 
 def main():
     # print(create_game("the game", "it's a game", 'Everyone'))

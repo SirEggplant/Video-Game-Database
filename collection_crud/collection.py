@@ -21,6 +21,7 @@ def list_users_collections(user_uuid: str):
     sql = """
         SELECT * FROM collection
         WHERE user_uuid = %s
+        ORDER BY collection_name DESC
     """
     try:
         return execute_query(sql, (user_uuid,), fetchall=True)
