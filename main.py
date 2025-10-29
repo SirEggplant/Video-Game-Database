@@ -7,6 +7,14 @@ from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
     create_collection, list_users_collections, add_game_to_collection, rename_collection, delete_collection, check_if_collection_exists
 )
 
+from SteamUltraDeluxHDRemixRemastered2.game_search_and_sorting.game import (
+    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
+)
+
+from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
+    print_games
+)
+
 
 UUID :str = ""
 LOGGED_IN : bool = False
@@ -216,6 +224,88 @@ def handle_delete_collection(tokens):
     
 
 
+# TODO: ADD PRINT STATEMENTS FOR INSTRUCTIONS
+
+
+def handle_game_search(tokens):
+    if(len(tokens) <  4):
+        print("""
+games search <field> <keyword>
+    Search for games by title, genre, platform, release year, developer,
+    publisher, or price range.
+    Example: games search genre RPG
+              """)
+    else:
+        term = tokens[2].lower()
+        match term:
+            case "genre":
+                rows = get_game_by_genre(tokens[3])
+                print_games(rows=rows)
+                return
+            case "title":
+                rows = get_game_by_title(tokens)
+                print_games(rows=rows)
+                return
+            case "platform":
+                rows = get_game_by_platform(tokens[3])
+                print_games(rows=rows)
+                return
+            case "year":
+                rows = get_game_by_release_year(tokens[3])
+                print_games(rows=rows)
+                return
+            case "developer":
+                rows = get_game_by_developer(tokens)
+                print_games(rows=rows)
+                return
+            case "dev":
+                rows = get_game_by_developer(tokens)
+                print_games(rows=rows)
+                return
+            case "publisher":
+                rows = get_game_by_publisher(tokens)
+                print_games(rows=rows)
+                return
+            case "pub":
+                rows = get_game_by_publisher(tokens)
+                print_games(rows=rows)
+                return
+            case "price":
+                if(len(tokens) == 4):
+                    rows = get_game_by_price_lower_than(tokens[3])
+                    print_games(rows=rows)
+                    return  
+                elif(len(tokens) == 5):
+                    rows = get_game_by_price_between(tokens[3], tokens[4])
+                    print_games(rows=rows)
+                    return
+                else:
+                    # TODO: PRINT STATEMENT HERE
+                    print()
+                    return
+            case "esrb":
+                if(len(tokens) == 4):
+                    rows = get_games_by_esrb(tokens[3])
+                    print_games(rows=rows)
+                    return
+
+# ideo game name,
+# price, genre, and released year (ascending and descending), without the user having to
+# type the search term again
+def handle_sort_result(tokens):
+    fields = ["title", "price", "genre", "year"]
+    orders = ["asc", "desc"]
+    try:
+        if(len(tokens) == 2):
+            if tokens[1].lower() in fields:
+                rows = sort_by(field=tokens[1], order="desc") 
+        elif(len(tokens) == 3):
+            if tokens[2].lower() in orders:
+                rows = sort_by(field=tokens[1], order=tokens[2]) 
+        print_games(rows=rows)
+    except Exception as e:
+        print(e)
+
 def check_if_logged_in():
     if UUID == "" or LOGGED_IN == False:
         print("Please Login to create a collection")
@@ -250,13 +340,22 @@ def main():
         elif tokens[0].lower() == "collections":
             if (len(tokens) == 3  or len(tokens) == 2) and tokens[1] == "create":
                 handle_create_collection(tokens)
-                continue
-            if(len(tokens) == 2 and tokens[1] == "list"):
+            elif(len(tokens) == 2 and tokens[1] == "list"):
                 handle_list_collection()
-            if(tokens[1].lower() == "rename"):
+            elif(tokens[1].lower() == "rename"):
                 handle_rename_collection(tokens)
-            if(tokens[1].lower() == "delete"):
+            elif(tokens[1].lower() == "delete"):
                 handle_delete_collection(tokens)
+            continue
+            
+        elif tokens[0].lower() == "game":
+            if(len(tokens) >= 2 and tokens[1] == "search"):
+                handle_game_search(tokens=tokens)
+                continue
+        
+        elif tokens[0].lower() == "sort":
+            if(len(tokens) >= 2):
+                handle_sort_result(tokens=tokens)
 
                 
 if __name__ =="__main__":
