@@ -10,24 +10,25 @@ esrbs = {'Early Childhood',
       'Adults Only 18+',
       'Rating Pending'}
 
-esrbs_lower = {'early childhood',
-      'everyone',
-      'everyone 10+',
-      'teen',
-      'mature 17+',
-      'adults only 18+',
-      'rating pending'
-}
 
 SQL_STORED = ""
 PARAMS_STORED = ""
 
+def apply_regular_order(sql: str, params, fetchall = False):
+    sql = sql + f" ORDER BY title, release_year ASC" 
+    
+    try:
+        rows = execute_query(sql=sql, params=params, fetchall=fetchall)
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by genre: {e}")
+        return None
 
 def store_previous_sql_query(sql: str, params):
-    global SQL, PARAMS
+    global SQL_STORED, PARAMS_STORED
 
-    SQL = sql
-    PARAMS = params
+    SQL_STORED = sql
+    PARAMS_STORED = params
 
 def sort_by(field: str, order: str):
     lower_field = field.lower()
@@ -40,14 +41,13 @@ def sort_by(field: str, order: str):
         case _:
             actual_field = field
 
-    sql = SQL + f" ORDER BY {actual_field}" 
+    sql = SQL_STORED + f" ORDER BY {actual_field}" 
     if order.lower() == "desc":
         sql += " DESC"
     else:
         sql += " ASC"
-    # print(sql)
     try:
-        rows = execute_query(sql=sql, params=PARAMS, fetchall=True)
+        rows = execute_query(sql=sql, params=PARAMS_STORED, fetchall=True)
         return rows
     except Exception as e:
         print(f"Error fetching games by genre: {e}")
@@ -94,12 +94,10 @@ def get_game_by_title(tokens):
                first_release_date, release_year, min_price, max_price, genres
         FROM game_listing
         WHERE title ILIKE %s
-        ORDER BY title DESC
     """
 
-
     try:
-        rows = execute_query(sql, (f"%{title}%",), fetchall=True)
+        rows = apply_regular_order(sql=sql, params=(f"%{title}%",), fetchall=True)
         store_previous_sql_query(sql=sql, params=(f"%{title}%",))
         return rows
     except:
@@ -121,7 +119,7 @@ def get_game_by_genre(genre :str):
     """
 
     try:
-        rows = execute_query(sql, (f"%{genre}%",), fetchall=True)
+        rows = apply_regular_order(sql, (f"%{genre}%",), fetchall=True)
         store_previous_sql_query(sql=sql, params=(f"%{genre}%",))
         return rows
     except Exception as e:
@@ -142,13 +140,12 @@ def get_game_by_platform(platform: str):
             JOIN game_release AS gr ON g.game_uuid = gr.game_uuid
             JOIN platform AS p ON p.platform_uuid = gr.platform_uuid
             WHERE p.platform_name ILIKE %s
-            ORDER BY g.title DESC
         )
 
     """
 
     try:
-        rows = execute_query(sql, (f"%{platform}%",), fetchall=True)
+        rows = apply_regular_order(sql, (f"%{platform}%",), fetchall=True)
         store_previous_sql_query(sql=sql, params=(f"%{platform}%",))
         return rows
     except Exception as e:
@@ -171,7 +168,7 @@ def get_game_by_release_year(year: str):
     """
 
     try:
-        rows = execute_query(sql, (year,), fetchall=True)
+        rows = apply_regular_order(sql, (year,), fetchall=True)
         store_previous_sql_query(sql=sql, params=(year,))
         return rows
     except Exception as e:
@@ -196,7 +193,7 @@ def get_game_by_developer(tokens):
     """
 
     try:
-        rows = execute_query(sql, (f"%{developer}%",), fetchall=True)
+        rows = apply_regular_order(sql, (f"%{developer}%",), fetchall=True)
         store_previous_sql_query(sql=sql, params=(f"%{developer}%",))
         return rows
     except Exception as e:
@@ -220,7 +217,7 @@ def get_game_by_publisher(tokens):
     """
 
     try:
-        rows = execute_query(sql, (f"%{publisher}%",), fetchall=True)
+        rows = apply_regular_order(sql, (f"%{publisher}%",), fetchall=True)
         store_previous_sql_query(sql=sql, params=(f"%{publisher}%",))
         return rows
     except Exception as e:
@@ -245,7 +242,7 @@ def get_game_by_price_lower_than(price: str):
     """
 
     try:
-        rows = execute_query(sql, (intPrice,), fetchall=True)
+        rows = apply_regular_order(sql, (intPrice,), fetchall=True)
         store_previous_sql_query(sql=sql, params=(intPrice,))
         return rows
     except Exception as e:
@@ -270,7 +267,7 @@ def get_game_by_price_between(lower_price: str, upper_price: str):
     """
 
     try:
-        rows = execute_query(sql, (actual_lower, actual_upper,), fetchall=True)
+        rows = apply_regular_order(sql, (actual_lower, actual_upper,), fetchall=True)
         store_previous_sql_query(sql=sql, params=(actual_lower, actual_upper,))
         return rows
     except Exception as e:
@@ -283,10 +280,10 @@ def get_games_by_esrb(esrb: str):
         total_playtime_minutes, esrb_rating, total_user_rating,
         first_release_date, release_year, min_price, max_price, genres
     FROM game_listing
-    WHERE esrb_rating::text ILIKE %s;
+    WHERE esrb_rating::text ILIKE %s
 """
     try:
-        rows = execute_query(sql=sql, params=(f"%{esrb}%",), fetchall=True)    
+        rows = apply_regular_order(sql=sql, params=(f"%{esrb}%",), fetchall=True)    
         store_previous_sql_query(sql=sql, params=(f"%{esrb}%",))
         return rows
     except Exception as e:
