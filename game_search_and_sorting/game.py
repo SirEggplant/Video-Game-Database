@@ -2,9 +2,6 @@ import psycopg # pyright: ignore[reportMissingImports]
 import uuid
 from SteamUltraDeluxHDRemixRemastered2.connection import execute_query
 
-from datetime import date, datetime
-from decimal import Decimal
-
 esrb = {'Early Childhood',
       'Everyone',
       'Everyone 10+',
@@ -14,8 +11,8 @@ esrb = {'Early Childhood',
       'Rating Pending'}
 
 
-SQL = ""
-PARAMS = ""
+SQL_STORED = ""
+PARAMS_STORED = ""
 
 
 def store_previous_sql_query(sql: str, params):
@@ -25,7 +22,28 @@ def store_previous_sql_query(sql: str, params):
     PARAMS = params
 
 def sort_by(field: str, order: str):
-    pass
+    lower_field = field.lower()
+    actual_field = ""
+    match lower_field:
+        case "year":
+            actual_field = "release_year"
+        case "price":
+            actual_field = "min_price"
+        case _:
+            actual_field = field
+
+    sql = SQL + f" ORDER BY {actual_field}" 
+    if order.lower() == "desc":
+        sql += " DESC"
+    else:
+        sql += " ASC"
+    # print(sql)
+    try:
+        rows = execute_query(sql=sql, params=PARAMS, fetchall=True)
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by genre: {e}")
+        return None
 
 def create_game(game_title: str, game_description: str, game_esrb : str):
 
@@ -74,6 +92,7 @@ def get_game_by_title(tokens):
 
     try:
         rows = execute_query(sql, (f"%{title}%",), fetchall=True)
+        store_previous_sql_query(sql=sql, params=(f"%{title}%",))
         return rows
     except:
         return None
@@ -95,6 +114,7 @@ def get_game_by_genre(genre :str):
 
     try:
         rows = execute_query(sql, (f"%{genre}%",), fetchall=True)
+        store_previous_sql_query(sql=sql, params=(f"%{genre}%",))
         return rows
     except Exception as e:
         print(f"Error fetching games by genre: {e}")
@@ -121,6 +141,7 @@ def get_game_by_platform(platform: str):
 
     try:
         rows = execute_query(sql, (f"%{platform}%",), fetchall=True)
+        store_previous_sql_query(sql=sql, params=(f"%{platform}%",))
         return rows
     except Exception as e:
         print(f"Error fetching games by platform: {e}")
@@ -143,6 +164,7 @@ def get_game_by_release_year(year: str):
 
     try:
         rows = execute_query(sql, (year,), fetchall=True)
+        store_previous_sql_query(sql=sql, params=(year,))
         return rows
     except Exception as e:
         print(f"Error fetching games by release year: {e}")
@@ -167,6 +189,7 @@ def get_game_by_developer(tokens):
 
     try:
         rows = execute_query(sql, (f"%{developer}%",), fetchall=True)
+        store_previous_sql_query(sql=sql, params=(f"%{developer}%",))
         return rows
     except Exception as e:
         print(f"Error fetching games by developer: {e}")
@@ -190,7 +213,7 @@ def get_game_by_publisher(tokens):
 
     try:
         rows = execute_query(sql, (f"%{publisher}%",), fetchall=True)
-       
+        store_previous_sql_query(sql=sql, params=(f"%{publisher}%",))
         return rows
     except Exception as e:
         print(f"Error fetching games by developer: {e}")
@@ -215,7 +238,7 @@ def get_game_by_price_lower_than(price: str):
 
     try:
         rows = execute_query(sql, (intPrice,), fetchall=True)
-       
+        store_previous_sql_query(sql=sql, params=(intPrice,))
         return rows
     except Exception as e:
         print(f"Error fetching games by developer: {e}")
@@ -240,11 +263,12 @@ def get_game_by_price_between(lower_price: str, upper_price: str):
 
     try:
         rows = execute_query(sql, (actual_lower, actual_upper,), fetchall=True)
-       
+        store_previous_sql_query(sql=sql, params=(actual_lower, actual_upper,))
         return rows
     except Exception as e:
         print(f"Error fetching games by developer: {e}")
         return None
+
 
 
 def main():

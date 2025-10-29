@@ -8,7 +8,7 @@ from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
 )
 
 from SteamUltraDeluxHDRemixRemastered2.game_search_and_sorting.game import (
-    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than
+    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by
 )
 
 from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
@@ -284,6 +284,22 @@ games search <field> <keyword>
                     print()
                     return
 
+# ideo game name,
+# price, genre, and released year (ascending and descending), without the user having to
+# type the search term again
+def handle_sort_result(tokens):
+    fields = ["title", "price", "genre", "year"]
+    orders = ["asc", "desc"]
+    try:
+        if(len(tokens) == 2):
+            if tokens[1].lower() in fields:
+                rows = sort_by(field=tokens[1], order="desc") 
+        elif(len(tokens) == 3):
+            if tokens[2].lower() in orders:
+                rows = sort_by(field=tokens[1], order=tokens[2]) 
+        print_games(rows=rows)
+    except Exception as e:
+        print(e)
 
 def check_if_logged_in():
     if UUID == "" or LOGGED_IN == False:
@@ -332,6 +348,9 @@ def main():
                 handle_game_search(tokens=tokens)
                 continue
         
+        elif tokens[0].lower() == "sort":
+            if(len(tokens) >= 2):
+                handle_sort_result(tokens=tokens)
 
                 
 if __name__ =="__main__":
