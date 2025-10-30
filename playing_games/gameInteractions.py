@@ -5,6 +5,23 @@ import random
 from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
 
 
+def rateGame(user_id: str, game_id: str, rating: int):
+    if rating > 5:
+        rating = 5
+    elif rating < 1:
+        rating = 1
+
+    sql_update = """
+        UPDATE user_owns_game 
+        SET rating = %s 
+        WHERE game_uuid = %s and user_uuid = %s
+    """
+
+    try:
+        execute_query(sql_update, (rating, game_id, user_id))
+    except:
+        return None
+
 
 def playGame(user_id: str, game_id: str, timeplayed: int, collection_id: str):
     if timeplayed == 0:
