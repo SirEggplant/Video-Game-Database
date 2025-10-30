@@ -64,16 +64,16 @@ def rate_Game(user_id: str, game_title: str, rating: int):
         return None
 
 
-def play_Game(user_id: str, game_title: str, timeplayed: int, collection_id: str):
+def play_Game(user_id: str, game_title: str, timeplayed: int, collection_name: str):
 
-    sql_select = """
+    sql_select_game = """
         SELECT game_uuid, user_uuid, total_playtime_minutes 
         FROM game_listing and collection
         WHERE user_uuid = %s AND game_uuid = %s
     """
 
     try:
-        game_id = execute_query(sql_select, (game_title), fetchone=True)
+        game_id = execute_query(sql_select_game, (game_title), fetchone=True)
         if not game_id or not game_id.get("game_uuid"):
             return None
         
@@ -81,9 +81,9 @@ def play_Game(user_id: str, game_title: str, timeplayed: int, collection_id: str
             timeplayed = random.randint(1,120)
 
         if game_id == "":
-            game_id = getRandomGameFromCollection(collection_id, user_id)
+            game_id = get_Random_Game_From_Collection(collection_name, user_id)
     except:
-        if not user_id or not timeplayed or (not game_id and not collection_id):
+        if not user_id or not timeplayed or (not game_id):
             return None
 
     sql_update = """
@@ -100,26 +100,32 @@ def play_Game(user_id: str, game_title: str, timeplayed: int, collection_id: str
     """
 
     try:
-        details = execute_query(sql_select, (user_id, game_id), fetchone=True)
-        if not details or not details.get("game_uuid") or not details.get("user_uuid"):
-            return None
-
         execute_query(sql_insert,(game_id, user_id, timeplayed))
 
         execute_query(sql_update, (timeplayed, game_id))
     except:
         return None
     
-def get_Random_Game_From_Collection(collection_id: str, user_id: str):
+def get_Random_Game_From_Collection(collection_name: str, user_id: str):
     if not collection_id and not user_id:
         return None
 
-    sql = """
+    
+    sql_select_collection = """
+        SELECT collection_uuid 
+        FROM collection
+        WHERE collection_name = %s and user_uuid = %s
+    """
+
+    sql_select_game = """
         SELECT game_uuid FROM collection
         WHERE collection_uuid = %s and user_uuid = %s
     """
     try:
-        result = execute_query(sql, (collection_id, user_id), fetchone=True)
+        collection_id = execute_query(sql_select_collection, (collection_name, user_id), fetchone=True)
+        collection_id = collection_id["collection_uuid"]
+
+        result = execute_query(sql_select_game, (collection_id, user_id), fetchone=True)
         if not result or not result.get("collection"):
             return None
         
