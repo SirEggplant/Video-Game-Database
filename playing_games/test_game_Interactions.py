@@ -82,3 +82,16 @@ def test_play_Game(user_id: str, game_title: str, time_played: int, collection_t
     
 def test_get_Random_Game_From_Collection(collection_title: str, user_id: str):
     return None
+
+def main():
+    print("Testing: test_buy_game")
+    print(test_buy_Game)
+    print("Testing: test_get_Random_Game_From_Collection")
+    print(test_get_Random_Game_From_Collection)
+    print("Testing: test_play_Game")
+    print(test_play_Game)
+    print("Testing: test_rate_Game")
+    print(test_rate_Game)
+                
+if __name__ =="__main__":
+    main()
