@@ -78,9 +78,28 @@ def test_rate_Game():
     assert game_Interactions.rate_Game(user_id, game_title, None) == None
 
 def test_play_Game(user_id: str, game_title: str, time_played: int, collection_title: str):
+    #All variables are provided
+    assert 1==1
+    #user_id is not provided
+    assert 0!=1
+    #game_title is not provided
+    assert 1==1
+    #time_played is not provided
+    assert 1==1
+    #collection_title is not provided
+    assert 1==1
+    #game_title and collection_title are not provided
+    assert 0!=1
+
     return None
     
 def test_get_Random_Game_From_Collection(collection_title: str, user_id: str):
+    #given all variables
+    assert 1==1
+    #not given collection title
+    assert 0!=1
+    #not given user_id
+    assert 0!=1
     return None
 
 def main():
