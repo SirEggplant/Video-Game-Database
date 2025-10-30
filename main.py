@@ -15,6 +15,10 @@ from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
     print_games
 )
 
+from SteamUltraDeluxHDRemixRemastered2.collection_membership.collection_membership import(
+    add_platform_to_user
+)
+
 
 UUID :str = ""
 LOGGED_IN : bool = False
@@ -183,7 +187,7 @@ def print_collections(rows):
     print(separator)
 
 def handle_create_collection(tokens):
-    if(check_if_logged_in):
+    if(check_if_logged_in()):
         if(len(tokens) != 3 and tokens[2] != None):
             print("collections create <name>")
         else:
@@ -289,9 +293,24 @@ games search <field> <keyword>
                     print_games(rows=rows)
                     return
 
-# ideo game name,
-# price, genre, and released year (ascending and descending), without the user having to
-# type the search term again
+
+def handle_add_platform(tokens):
+    if check_if_logged_in():
+        try:
+            result = add_platform_to_user(uuid=UUID, platform_name=tokens[2])
+            if(result != None):
+                print("Platform added")
+            return
+
+        except Exception as e:
+            print(e)
+            return None
+    else:
+        print("Please login")
+        return
+
+
+
 def handle_sort_result(tokens):
     fields = ["title", "price", "genre", "year"]
     orders = ["asc", "desc"]
@@ -356,6 +375,10 @@ def main():
         elif tokens[0].lower() == "sort":
             if(len(tokens) >= 2):
                 handle_sort_result(tokens=tokens)
+        elif tokens[0].lower() == "platform":
+            if(len(tokens) > 2 and tokens[1] == "add"):
+                handle_add_platform(tokens=tokens)
+                
 
                 
 if __name__ =="__main__":
