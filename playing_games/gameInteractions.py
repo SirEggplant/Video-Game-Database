@@ -5,6 +5,9 @@ from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_
 
 
 def buyGame(user_id: str, game_id: str, rating=None):
+    if not user_id or game_id:
+        return None
+    
     sql_insert = """
         INSERT INTO user_owns_game
         (user_uuid, game_uuid, timeplayed)
@@ -18,10 +21,15 @@ def buyGame(user_id: str, game_id: str, rating=None):
         return None
 
 def rateGame(user_id: str, game_id: str, rating: int):
-    if rating > 5:
-        rating = 5
-    elif rating < 1:
-        rating = 1
+    
+    try:
+        if rating > 5:
+            rating = 5
+        elif rating < 1:
+            rating = 1
+    except:
+        if not user_id or not game_id or not rating:
+            return None
 
     sql_update = """
         UPDATE user_owns_game 
@@ -36,11 +44,15 @@ def rateGame(user_id: str, game_id: str, rating: int):
 
 
 def playGame(user_id: str, game_id: str, timeplayed: int, collection_id: str):
-    if timeplayed == 0:
-        timeplayed = random.randint(1,120)
+    try:
+        if timeplayed == 0:
+            timeplayed = random.randint(1,120)
 
-    if game_id == "":
-        game_id = getRandomGameFromCollection(collection_id, user_id)
+        if game_id == "":
+            game_id = getRandomGameFromCollection(collection_id, user_id)
+    except:
+        if not user_id or not timeplayed or (not game_id and not collection_id):
+            return None
 
 
     sql_select = """
@@ -74,6 +86,9 @@ def playGame(user_id: str, game_id: str, timeplayed: int, collection_id: str):
         return None
     
 def getRandomGameFromCollection(collection_id: str, user_id: str):
+    if not collection_id and not user_id:
+        return None
+
     sql = """
         SELECT game_uuid FROM collection
         WHERE collection_uuid = %s and user_uuid = %s
