@@ -223,7 +223,7 @@ def handle_delete_collection(tokens):
             else:
                 return
         else:
-            "Collection does not exist"
+            print("Collection does not exist")
             return
     
 
@@ -284,8 +284,8 @@ games search <field> <keyword>
                     print_games(rows=rows)
                     return
                 else:
-                    # TODO: PRINT STATEMENT HERE
-                    print()
+                    print("game search price <Max Price> OR \ngame search price <Min Price> <Max price>")
+
                     return
             case "esrb":
                 if(len(tokens) == 4):
