@@ -316,29 +316,17 @@ def handle_play_game(tokens):
         print("You must be logged in to play a game.")
         return
 
-    if len(tokens) < 2 and len(tokens) > 4:
+    if len(tokens) < 2:
         print("Allowed Formats: \n play <game_name>" \
         "\n play <game_name> <playtime>" \
-        "\n play <None> <playtime> <collection_to_randomly_play>" \
-        "\n play <None> <None> <collection_to_randomly_play>")
+        "\n play <playtime> <collection_name>")
         return
 
     if tokens[1] != "":
-        if len(tokens) == 2:
-            game = play_Game(UUID, tokens[1])
-            if game is None:
-                print("The game you are trying to play does not exist.")
-                return
-        elif len(tokens) == 3:
-            game = play_Game(UUID, tokens[1], tokens[2])
-            if game is None:
-                print("The game you are trying to play does not exist.")
-                return
-        elif len(tokens) == 4:
-            game = play_Game(UUID, tokens[1], tokens[2], tokens[3])
-            if game is None:
-                print("The collection of games you are trying to play does not exist.")
-                return
+        game = play_Game(UUID, tokens)
+        if game is None:
+            print("The game you are trying to play does not exist.")
+            return
     else:
         print("Game name cannot be empty.")
 

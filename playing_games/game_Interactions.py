@@ -4,8 +4,11 @@ import random
 from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
 
 
-def buy_Game(user_id: str, game_title: str, rating=None):
+def buy_Game(user_id: str, tokens):
     
+    game_title = " ".join(tokens[3:]).strip()
+    rating = None
+
     if not user_id or not game_title:
         return None
     
@@ -31,8 +34,13 @@ def buy_Game(user_id: str, game_title: str, rating=None):
     except:
         return None
 
-def rate_Game(user_id: str, game_title: str, rating: int):
+def rate_Game(user_id: str, tokens):
     
+    parts = tokens.strip().rsplit(' ', 1)
+    if len(parts) == 2 and parts[1].isdigit():
+        game_title = parts[0]
+        rating = int(parts[1])
+
     try:
         if rating > 5:
             rating = 5
@@ -64,12 +72,26 @@ def rate_Game(user_id: str, game_title: str, rating: int):
         return None
 
 
-def play_Game(user_id: str, game_title: str, time_played: int, collection_name: str):
+def play_Game(user_id: str, tokens):
+
+    # game_title: str, time_played: int
+    # time_played: int, collection_name: str
+    parts = tokens.strip().rsplit(' ', 1)
+    if len(parts) == 2 and parts[1].isdigit():
+        game_title = parts[0]
+        time_played = int(parts[1])
+    elif len(parts) == 2 and parts[0].isdigit():
+        time_played = int(parts[0])
+        collection_name = parts[1]
+    else:
+        game_title = tokens.strip()
+        time_played = None
+        collection_name = None
 
     sql_select_game = """
-        SELECT game_uuid, user_uuid, total_playtime_minutes 
+        SELECT game_uuid 
         FROM game_listing and collection
-        WHERE user_uuid = %s AND game_uuid = %s
+        WHERE user_uuid = %s AND game_title ILIKE %s
     """
 
     try:
