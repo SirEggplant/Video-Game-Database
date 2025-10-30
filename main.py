@@ -15,6 +15,10 @@ from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
     print_games
 )
 
+from SteamUltraDeluxHDRemixRemastered2.playing_games.gameInteractions import (
+    buy_Game, rate_Game, play_Game
+)
+
 
 UUID :str = ""
 LOGGED_IN : bool = False
@@ -306,6 +310,73 @@ def handle_sort_result(tokens):
     except Exception as e:
         print(e)
 
+
+def handle_play_game(tokens):
+    if not check_if_logged_in():
+        print("You must be logged in to play a game.")
+        return
+
+    if len(tokens) < 2 and len(tokens) > 4:
+        print("Allowed Formats: \n play <game_name>" \
+        "\n play <game_name> <playtime>" \
+        "\n play <None> <playtime> <collection_to_randomly_play>" \
+        "\n play <None> <None> <collection_to_randomly_play>")
+        return
+
+    if tokens[1] != "":
+        if len(tokens) == 2:
+            game = play_Game(UUID, tokens[1])
+            if game is None:
+                print("The game you are trying to play does not exist.")
+                return
+        elif len(tokens) == 3:
+            game = play_Game(UUID, tokens[1], tokens[2])
+            if game is None:
+                print("The game you are trying to play does not exist.")
+                return
+        elif len(tokens) == 4:
+            game = play_Game(UUID, tokens[1], tokens[2], tokens[3])
+            if game is None:
+                print("The collection of games you are trying to play does not exist.")
+                return
+    else:
+        print("Game name cannot be empty.")
+
+def handle_rate_game(tokens):
+    if not check_if_logged_in():
+        print("You must be logged in to rate a game.")
+        return
+
+    if len(tokens) != 3:
+        print("Format must be: rate <game_name> <rating>")
+        return 
+
+    if tokens[1] != "":
+        game = rate_Game(UUID, tokens[1])
+        if game is None:
+            print("The game you are trying to rate does not exist.")
+            return
+    else:
+        print("Game name cannot be empty.")
+
+
+def handle_buy_game(tokens):
+    if not check_if_logged_in():
+        print("You must be logged in to rate a game.")
+        return
+
+    if len(tokens) != 2:
+        print("Format must be: buy <game_name>")
+        return 
+
+    if tokens[1] != "":
+        game = buy_Game(UUID, tokens[1])
+        if game is None:
+            print("The game you are trying to buy does not exist.")
+            return
+    else:
+        print("Game name cannot be empty.")
+
 def check_if_logged_in():
     if UUID == "" or LOGGED_IN == False:
         print("Please Login to create a collection")
@@ -356,6 +427,22 @@ def main():
         elif tokens[0].lower() == "sort":
             if(len(tokens) >= 2):
                 handle_sort_result(tokens=tokens)
+                continue
+
+        elif tokens[0].lower() == "play":
+            if(len(tokens) >= 1):
+                handle_play_game(tokens)
+                continue
+
+        elif tokens[0].lower() == "rate":
+            if(len(tokens) >= 1):
+                handle_rate_game(tokens)
+                continue
+
+        elif tokens[0].lower() == "buy":
+            if(len(tokens) >= 1):
+                handle_buy_game(tokens)
+                
 
                 
 if __name__ =="__main__":
