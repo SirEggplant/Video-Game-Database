@@ -55,7 +55,7 @@ def add_game_to_collection(user_uuid: str, game_uuid: str, collection_uuid: str)
         
 def isOwnedBy(user_uuid, game_uuid):
     sql_select = """
-    select * from collection where user_uuid = %s and game_uuid = %s
+    select * from user_owns_game where user_uuid = %s and game_uuid = %s
     """
 
     conn, server = connect_to_db()
