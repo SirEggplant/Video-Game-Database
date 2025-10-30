@@ -4,9 +4,16 @@ import random
 from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
 
 
-def buyGame(user_id: str, game_id: str, rating=None):
-    if not user_id or game_id:
+def buy_Game(user_id: str, game_title: str, rating=None):
+    
+    if not user_id or not game_title:
         return None
+    
+    sql_select = """
+        SELECT game_uuid
+        FROM game_listing
+        WHERE game_title = %s
+    """
     
     sql_insert = """
         INSERT INTO user_owns_game
@@ -16,11 +23,15 @@ def buyGame(user_id: str, game_id: str, rating=None):
     """
 
     try:
+        game_id = execute_query(sql_select, (game_title), fetchone=True)
+        if not game_id or not game_id.get("game_uuid"):
+            return None
+        
         execute_query(sql_insert, (user_id, game_id, rating))
     except:
         return None
 
-def rateGame(user_id: str, game_id: str, rating: int):
+def rate_Game(user_id: str, game_title: str, rating: int):
     
     try:
         if rating > 5:
@@ -28,8 +39,14 @@ def rateGame(user_id: str, game_id: str, rating: int):
         elif rating < 1:
             rating = 1
     except:
-        if not user_id or not game_id or not rating:
+        if not user_id or not game_title or not rating:
             return None
+
+    sql_select = """
+        SELECT game_uuid
+        FROM game_listing
+        WHERE game_title = %s
+    """
 
     sql_update = """
         UPDATE user_owns_game 
@@ -38,13 +55,28 @@ def rateGame(user_id: str, game_id: str, rating: int):
     """
 
     try:
+        game_id = execute_query(sql_select, (game_title), fetchone=True)
+        if not game_id or not game_id.get("game_uuid"):
+            return None
+
         execute_query(sql_update, (rating, game_id, user_id))
     except:
         return None
 
 
-def playGame(user_id: str, game_id: str, timeplayed: int, collection_id: str):
+def play_Game(user_id: str, game_title: str, timeplayed: int, collection_id: str):
+
+    sql_select = """
+        SELECT game_uuid, user_uuid, total_playtime_minutes 
+        FROM game_listing and collection
+        WHERE user_uuid = %s AND game_uuid = %s
+    """
+
     try:
+        game_id = execute_query(sql_select, (game_title), fetchone=True)
+        if not game_id or not game_id.get("game_uuid"):
+            return None
+        
         if timeplayed == 0:
             timeplayed = random.randint(1,120)
 
@@ -53,13 +85,6 @@ def playGame(user_id: str, game_id: str, timeplayed: int, collection_id: str):
     except:
         if not user_id or not timeplayed or (not game_id and not collection_id):
             return None
-
-
-    sql_select = """
-        SELECT game_uuid, user_uuid, total_playtime_minutes 
-        FROM game_listing and collection
-        WHERE user_uuid = %s AND game_uuid = %s
-    """
 
     sql_update = """
         UPDATE game_listing 
@@ -85,7 +110,7 @@ def playGame(user_id: str, game_id: str, timeplayed: int, collection_id: str):
     except:
         return None
     
-def getRandomGameFromCollection(collection_id: str, user_id: str):
+def get_Random_Game_From_Collection(collection_id: str, user_id: str):
     if not collection_id and not user_id:
         return None
 
