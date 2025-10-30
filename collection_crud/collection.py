@@ -35,22 +35,22 @@ def add_game_to_collection(user_uuid: str, game_uuid: str, collection_uuid: str)
     sql_insert = """
         INSERT INTO collection_contains (collection_uuid, game_uuid)
         VALUES (%s, %s)
-        RETURNING collection_uuid
+        RETURNING collection_uuid where user_uuid = %s
     """
     sql_update = """
         UPDATE collection
         SET num_of_games = num_of_games + 1
-        WHERE collection_uuid = %s
+        WHERE collection_uuid = %s and user_uuid = %s
         RETURNING collection_uuid, num_of_games
     """
 
     with connect_to_db() as conn:
         with conn.cursor() as cur:
-            cur.execute(sql_insert, (collection_uuid, game_uuid))
+            cur.execute(sql_insert, (collection_uuid, game_uuid, user_uuid))
             inserted = cur.fetchone()
             if not inserted:
                 return None
-            cur.execute(sql_update, (collection_uuid,))
+            cur.execute(sql_update, (collection_uuid, user_uuid))
             return cur.fetchone()
         
 def isOwnedBy(user_uuid, game_uuid):
