@@ -15,7 +15,7 @@ from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
     print_games
 )
 
-from SteamUltraDeluxHDRemixRemastered2.playing_games.gameInteractions import (
+from SteamUltraDeluxHDRemixRemastered2.playing_games.game_Interactions import (
     buy_Game, rate_Game, play_Game
 )
 

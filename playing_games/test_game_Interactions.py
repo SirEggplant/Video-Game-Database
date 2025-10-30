@@ -2,17 +2,17 @@ import unittest
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
 import random
-import gameInteractions
+import playing_games.game_Interactions as game_Interactions
 from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
 
 
-def test_buyGame():
+def test_buy_Game():
 
     #all values are provided
     user_id = "0001"
     game_id = "0001"
     rating = 5
-    gameInteractions.buyGame(user_id,game_id,rating)
+    game_Interactions.buy_Game(user_id,game_id,rating)
 
     sql_select = """
         SELECT user_uuid, game_uuid, rating 
@@ -28,13 +28,13 @@ def test_buyGame():
         return None
     
     #user id is not provided
-    assert gameInteractions.buyGame(None, game_id, rating) == None
+    assert game_Interactions.buy_Game(None, game_id, rating) == None
 
     #game id is not provided
-    assert gameInteractions.buyGame(user_id, None, rating) == None
+    assert game_Interactions.buy_Game(user_id, None, rating) == None
 
     #rating is not provided
-    gameInteractions.buyGame("0001","0001")
+    game_Interactions.buy_Game("0001","0001")
 
     sql_select = """
         SELECT user_uuid, game_uuid, rating 
@@ -49,13 +49,13 @@ def test_buyGame():
         #This should never be reached
         return None
 
-def test_rateGame():
+def test_rate_Game():
     #All values provided
     user_id = "0001"
     game_id = "0001"
     rating = 5
 
-    gameInteractions.rateGame(user_id, game_id, rating)
+    game_Interactions.rate_Game(user_id, game_id, rating)
 
     sql_select = """
         SELECT user_uuid, game_uuid, rating 
@@ -71,14 +71,14 @@ def test_rateGame():
         return None
     
     #user is is not provided
-    assert gameInteractions.rateGame(None, game_id, rating) == None
+    assert game_Interactions.rate_Game(None, game_id, rating) == None
     #game is is not provided
-    assert gameInteractions.rateGame(user_id, None, rating) == None
+    assert game_Interactions.rate_Game(user_id, None, rating) == None
     #rating is not provided
-    assert gameInteractions.rateGame(user_id, game_id, None) == None
+    assert game_Interactions.rate_Game(user_id, game_id, None) == None
 
-def test_playGame(user_id: str, game_id: str, timeplayed: int, collection_id: str):
+def test_play_Game(user_id: str, game_id: str, timeplayed: int, collection_id: str):
     return None
     
-def test_getRandomGameFromCollection(collection_id: str, user_id: str):
+def test_get_Random_Game_From_Collection(collection_id: str, user_id: str):
     return None
