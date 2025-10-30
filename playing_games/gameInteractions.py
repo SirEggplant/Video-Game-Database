@@ -1,9 +1,21 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
-import time
 import random
 from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
 
+
+def buyGame(user_id: str, game_id: str, rating=None):
+    sql_insert = """
+        INSERT INTO user_owns_game
+        (user_uuid, game_uuid, timeplayed)
+        VALUES(%s, %s, %s::esrb)
+        RETURNING game_uuid
+    """
+
+    try:
+        execute_query(sql_insert, (user_id, game_id, rating))
+    except:
+        return None
 
 def rateGame(user_id: str, game_id: str, rating: int):
     if rating > 5:
