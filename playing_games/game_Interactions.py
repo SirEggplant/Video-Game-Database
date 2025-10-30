@@ -17,7 +17,7 @@ def buy_Game(user_id: str, game_title: str, rating=None):
     
     sql_insert = """
         INSERT INTO user_owns_game
-        (user_uuid, game_uuid, timeplayed)
+        (user_uuid, game_uuid, time_played)
         VALUES(%s, %s, %s::esrb)
         RETURNING game_uuid
     """
@@ -64,7 +64,7 @@ def rate_Game(user_id: str, game_title: str, rating: int):
         return None
 
 
-def play_Game(user_id: str, game_title: str, timeplayed: int, collection_name: str):
+def play_Game(user_id: str, game_title: str, time_played: int, collection_name: str):
 
     sql_select_game = """
         SELECT game_uuid, user_uuid, total_playtime_minutes 
@@ -77,13 +77,13 @@ def play_Game(user_id: str, game_title: str, timeplayed: int, collection_name: s
         if not game_id or not game_id.get("game_uuid"):
             return None
         
-        if timeplayed == 0:
-            timeplayed = random.randint(1,120)
+        if time_played == 0:
+            time_played = random.randint(1,120)
 
         if game_id == "":
             game_id = get_Random_Game_From_Collection(collection_name, user_id)
     except:
-        if not user_id or not timeplayed or (not game_id):
+        if not user_id or not time_played or (not game_id):
             return None
 
     sql_update = """
@@ -94,15 +94,15 @@ def play_Game(user_id: str, game_title: str, timeplayed: int, collection_name: s
 
     sql_insert = """
         INSERT INTO user_plays
-        (game_uuid, user_uuid, timeplayed)
+        (game_uuid, user_uuid, time_played)
         VALUES(%s, %s, %s::esrb)
         RETURNING game_uuid
     """
 
     try:
-        execute_query(sql_insert,(game_id, user_id, timeplayed))
+        execute_query(sql_insert,(game_id, user_id, time_played))
 
-        execute_query(sql_update, (timeplayed, game_id))
+        execute_query(sql_update, (time_played, game_id))
     except:
         return None
     

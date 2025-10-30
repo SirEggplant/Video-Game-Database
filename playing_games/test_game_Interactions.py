@@ -10,9 +10,9 @@ def test_buy_Game():
 
     #all values are provided
     user_id = "0001"
-    game_id = "0001"
+    game_title = "0001"
     rating = 5
-    game_Interactions.buy_Game(user_id,game_id,rating)
+    game_Interactions.buy_Game(user_id,game_title,rating)
 
     sql_select = """
         SELECT user_uuid, game_uuid, rating 
@@ -21,14 +21,14 @@ def test_buy_Game():
     """
 
     try:
-        details = execute_query(sql_select, (user_id, game_id, rating), fetchone=True)
+        details = execute_query(sql_select, (user_id, game_title, rating), fetchone=True)
         assert details == {'user_uuid': '0001', 'game_uuid': '0001', 'rating': 5}
     except:
         #This should never be reached
         return None
     
     #user id is not provided
-    assert game_Interactions.buy_Game(None, game_id, rating) == None
+    assert game_Interactions.buy_Game(None, game_title, rating) == None
 
     #game id is not provided
     assert game_Interactions.buy_Game(user_id, None, rating) == None
@@ -43,7 +43,7 @@ def test_buy_Game():
     """
 
     try:
-        details = execute_query(sql_select, (user_id, game_id), fetchone=True)
+        details = execute_query(sql_select, (user_id, game_title), fetchone=True)
         assert details == {'user_uuid': '0001', 'game_uuid': '0001', 'rating': None}
     except:
         #This should never be reached
@@ -52,10 +52,10 @@ def test_buy_Game():
 def test_rate_Game():
     #All values provided
     user_id = "0001"
-    game_id = "0001"
+    game_title = "0001"
     rating = 5
 
-    game_Interactions.rate_Game(user_id, game_id, rating)
+    game_Interactions.rate_Game(user_id, game_title, rating)
 
     sql_select = """
         SELECT user_uuid, game_uuid, rating 
@@ -64,21 +64,21 @@ def test_rate_Game():
     """
 
     try:
-        details = execute_query(sql_select, (user_id, game_id), fetchone=True)
+        details = execute_query(sql_select, (user_id, game_title), fetchone=True)
         assert details == {'user_uuid': '0001', 'game_uuid': '0001', 'rating': None}
     except:
         #This should never be reached
         return None
     
     #user is is not provided
-    assert game_Interactions.rate_Game(None, game_id, rating) == None
+    assert game_Interactions.rate_Game(None, game_title, rating) == None
     #game is is not provided
     assert game_Interactions.rate_Game(user_id, None, rating) == None
     #rating is not provided
-    assert game_Interactions.rate_Game(user_id, game_id, None) == None
+    assert game_Interactions.rate_Game(user_id, game_title, None) == None
 
-def test_play_Game(user_id: str, game_id: str, timeplayed: int, collection_id: str):
+def test_play_Game(user_id: str, game_title: str, time_played: int, collection_title: str):
     return None
     
-def test_get_Random_Game_From_Collection(collection_id: str, user_id: str):
+def test_get_Random_Game_From_Collection(collection_title: str, user_id: str):
     return None
