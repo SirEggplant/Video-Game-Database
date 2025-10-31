@@ -9,9 +9,8 @@ from dotenv import load_dotenv # pyright: ignore[reportMissingImports]
 
 load_dotenv()
 
-#username = os.getenv("USERNAME")
-username = input("Username for db: ")
-password = input("Password for db: ")
+username = os.getenv("USERNAME")
+password = os.getenv("PASSWORD")
 dbName = "p320_46"
 
 def connect_to_db():
