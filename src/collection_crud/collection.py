@@ -1,10 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
-<<<<<<< HEAD
 from src.db_Connection import connect_to_db, execute_query
-=======
-from db_Connection import connect_to_db, execute_query
->>>>>>> b3f8b53428799462283b0486ff9317744588338b
 
 def create_collection(user_uuid, collection_name):
     sql = """
