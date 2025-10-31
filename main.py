@@ -11,6 +11,9 @@ from game_search_and_sorting.game import (
     get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
 )
 
+from playing_games.game_Interactions import (
+    play_Game, rate_Game, buy_Game
+)
 from printers.print_helper import (
     print_games
 )
@@ -341,6 +344,9 @@ def handle_play_game(tokens):
         if game is None:
             print("The game you are trying to play does not exist.")
             return
+        else:
+            print(game)
+            return
     else:
         print("Game name cannot be empty.")
 
@@ -349,14 +355,17 @@ def handle_rate_game(tokens):
         print("You must be logged in to rate a game.")
         return
 
-    if len(tokens) != 3:
+    if len(tokens) < 2:
         print("Format must be: rate <game_name> <rating>")
         return 
 
     if tokens[1] != "":
-        game = rate_Game(UUID, tokens[1])
+        game = rate_Game(UUID, tokens)
         if game is None:
             print("The game you are trying to rate does not exist.")
+            return
+        else:
+            print(game)
             return
     else:
         print("Game name cannot be empty.")
@@ -367,14 +376,17 @@ def handle_buy_game(tokens):
         print("You must be logged in to rate a game.")
         return
 
-    if len(tokens) != 2:
+    if len(tokens) < 2:
         print("Format must be: buy <game_name>")
         return 
 
     if tokens[1] != "":
-        game = buy_Game(UUID, tokens[1])
+        game = buy_Game(UUID, tokens)
         if game is None:
             print("The game you are trying to buy does not exist.")
+            return
+        else:
+            print(game)
             return
     else:
         print("Game name cannot be empty.")
@@ -432,6 +444,18 @@ def main():
         elif tokens[0].lower() == "platform":
             if(len(tokens) > 2 and tokens[1] == "add"):
                 handle_add_platform(tokens=tokens)
+                
+        elif tokens[0].lower() == "play":
+            if(len(tokens) >= 2):
+                handle_play_game(tokens=tokens)
+                
+        elif tokens[0].lower() == "rate":
+            if(len(tokens) >= 2):
+                handle_rate_game(tokens=tokens)
+                
+        elif tokens[0].lower() == "buy":
+            if(len(tokens) >= 2):
+                handle_buy_game(tokens=tokens)
                 
 
                 
