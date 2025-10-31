@@ -14,7 +14,7 @@ def buy_Game(user_id: str, parts):
     
     sql_select = """
         SELECT game_UUID
-        FROM game_listing
+        FROM game
         WHERE title ILIKE %s
     """
     
@@ -55,7 +55,7 @@ def rate_Game(user_id: str, parts):
 
     sql_select = """
         SELECT game_UUID
-        FROM game_listing
+        FROM game
         WHERE title = %s
     """
 
