@@ -1,18 +1,22 @@
 import psycopg # pyright: ignore[reportMissingImports]
-from SteamUltraDeluxHDRemixRemastered2.authentication_and_session.authentication import (
+from authentication_and_session.authentication import (
     login_with_email, register
 )
 
-from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
+from collection_crud.collection import (
     create_collection, list_users_collections, add_game_to_collection, rename_collection, delete_collection, check_if_collection_exists
 )
 
-from SteamUltraDeluxHDRemixRemastered2.game_search_and_sorting.game import (
+from game_search_and_sorting.game import (
     get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
 )
 
-from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
+from printers.print_helper import (
     print_games
+)
+
+from collection_membership.collection_membership import(
+    add_platform_to_user
 )
 
 
@@ -183,7 +187,7 @@ def print_collections(rows):
     print(separator)
 
 def handle_create_collection(tokens):
-    if(check_if_logged_in):
+    if(check_if_logged_in()):
         if(len(tokens) != 3 and tokens[2] != None):
             print("collections create <name>")
         else:
@@ -219,7 +223,7 @@ def handle_delete_collection(tokens):
             else:
                 return
         else:
-            "Collection does not exist"
+            print("Collection does not exist")
             return
     
 
@@ -280,8 +284,8 @@ games search <field> <keyword>
                     print_games(rows=rows)
                     return
                 else:
-                    # TODO: PRINT STATEMENT HERE
-                    print()
+                    print("game search price <Max Price> OR \ngame search price <Min Price> <Max price>")
+
                     return
             case "esrb":
                 if(len(tokens) == 4):
@@ -289,9 +293,24 @@ games search <field> <keyword>
                     print_games(rows=rows)
                     return
 
-# ideo game name,
-# price, genre, and released year (ascending and descending), without the user having to
-# type the search term again
+
+def handle_add_platform(tokens):
+    if check_if_logged_in():
+        try:
+            result = add_platform_to_user(uuid=UUID, platform_name=tokens[2])
+            if(result != None):
+                print("Platform added")
+            return
+
+        except Exception as e:
+            print(e)
+            return None
+    else:
+        print("Please login")
+        return
+
+
+
 def handle_sort_result(tokens):
     fields = ["title", "price", "genre", "year"]
     orders = ["asc", "desc"]
@@ -356,6 +375,10 @@ def main():
         elif tokens[0].lower() == "sort":
             if(len(tokens) >= 2):
                 handle_sort_result(tokens=tokens)
+        elif tokens[0].lower() == "platform":
+            if(len(tokens) > 2 and tokens[1] == "add"):
+                handle_add_platform(tokens=tokens)
+                
 
                 
 if __name__ =="__main__":
