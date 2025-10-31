@@ -1,6 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
-from connection import connect_to_db, execute_query
+from db_Connection import connect_to_db, execute_query
 
 
 
