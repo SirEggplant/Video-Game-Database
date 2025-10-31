@@ -1,22 +1,18 @@
-import warnings
-from cryptography.utils import CryptographyDeprecationWarning # pyright: ignore[reportMissingImports]
-warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
-
 import psycopg  # pyright: ignore[reportMissingImports]
 import os
 from sshtunnel import SSHTunnelForwarder # pyright: ignore[reportMissingImports]
 from dotenv import load_dotenv # pyright: ignore[reportMissingImports]
+import getpass
 
 load_dotenv()
 
-#username = os.getenv("USERNAME")
+# username = os.getenv("USERNAME")
 username = input("Username for db: ")
-password = input("Password for db: ")
+password = getpass.getpass("Password for db: ")
 dbName = "p320_46"
 
 def connect_to_db():
     try:
-        
         server = SSHTunnelForwarder(
             ('starbug.cs.rit.edu', 22),
             ssh_username=username,
@@ -41,7 +37,6 @@ def connect_to_db():
     except Exception as e:
         print("Connection failed:", repr(e))
         return None, None
-
 
 def execute_query(sql, params=(), fetchone=False, fetchall=False):
     conn, server = connect_to_db()
@@ -73,11 +68,9 @@ def execute_query(sql, params=(), fetchone=False, fetchall=False):
         except Exception:
             pass
 
-
 def main():
     result = execute_query("SELECT version();", fetchone=True)
     print("Result:", result)
-
 
 if __name__ == "__main__":
     main()
