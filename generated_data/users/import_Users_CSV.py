@@ -1,6 +1,6 @@
 import csv
 
-from SteamUltraDeluxHDRemixRemastered2.authentication import (
+from authentication import (
     register
 )
 
