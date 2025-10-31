@@ -1,6 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
-from db_Connection import connect_to_db, execute_query
+from db_Connection import execute_query
 
 
 
@@ -15,29 +15,15 @@ def login_with_user(username: str, password: str):
         WHERE username = %s
 """
 
-    conn, server = connect_to_db()
-    if not conn or not server:
-        return None
+    
 
     try:
-        with conn.cursor() as cur:
-            cur.execute(sql_select, (username, password))
-            result = cur.fetchone()
-            cur.execute(sql_update, (username,))
-            conn.commit()
-            return result
+        result = execute_query(sql_select, (username, password), fetchone=True)
+        execute_query(sql_update, (username,))
+        return result
     except Exception as e:
         print("Error executing query:", e)
         return None
-    finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
-        try:
-            server.stop()
-        except Exception:
-            pass
             
 def login_with_email(email: str, password: str):
 
@@ -50,28 +36,17 @@ def login_with_email(email: str, password: str):
         WHERE email = %s
 """
 
-    conn, server = connect_to_db()
-    if not conn or not server:
-        return None
+    
     try:
-        with conn.cursor() as cur:
-            cur.execute(sql_select, (email, password))
-            result = cur.fetchone()
-            cur.execute(sql_update, (email,))
-            conn.commit()
-            return result
+        result = execute_query(sql_select, (email, password),fetchone=True)
+        print(result)
+        if result is None:
+            return None
+        execute_query(sql_update, (email,))
+        return result
     except Exception as e:
         print("Error executing query:", e)
         return None
-    finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
-        try:
-            server.stop()
-        except Exception:
-            pass
     
     
 def register(username, password, firstname, lastname, email):

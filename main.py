@@ -135,6 +135,7 @@ def handle_login_with_email(tokens):
         return
     
     user = login_with_email(tokens[1], tokens[2])
+    print(user)
     if(user != None):
         UUID = user[0]
         LOGGED_IN = True

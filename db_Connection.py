@@ -1,22 +1,23 @@
 import warnings
-from cryptography.utils import CryptographyDeprecationWarning # pyright: ignore[reportMissingImports]
+from cryptography.utils import CryptographyDeprecationWarning  # pyright: ignore[reportMissingImports]
 warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
 
 import psycopg  # pyright: ignore[reportMissingImports]
 import os
-from sshtunnel import SSHTunnelForwarder # pyright: ignore[reportMissingImports]
-from dotenv import load_dotenv # pyright: ignore[reportMissingImports]
+from sshtunnel import SSHTunnelForwarder  # pyright: ignore[reportMissingImports]
+from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
+
+import getpass
 
 load_dotenv()
 
 #username = os.getenv("USERNAME")
-username = input("Username for db: ")
-password = input("Password for db: ")
+username = "jnd6300" #input("Username for db: ")
+password = "HuesOfRed-2022" #getpass.getpass("Password for db: ")
 dbName = "p320_46"
 
-def connect_to_db():
+def setup_connections():
     try:
-        
         server = SSHTunnelForwarder(
             ('starbug.cs.rit.edu', 22),
             ssh_username=username,
@@ -26,8 +27,6 @@ def connect_to_db():
             host_pkey_directories=[],
         )
         server.start()
-        # print("SSH tunnel established")
-
         conn = psycopg.connect(
             dbname=dbName,
             user=username,
@@ -35,8 +34,6 @@ def connect_to_db():
             host='localhost',
             port=server.local_bind_port
         )
-        # print("Database connection established")
-
         return conn, server
     except Exception as e:
         print("Connection failed:", repr(e))
@@ -46,6 +43,7 @@ def connect_to_db():
 def execute_query(sql, params=(), fetchone=False, fetchall=False):
     conn, server = connect_to_db()
     if not conn or not server:
+        print("Failed to establish DB connection")
         return None
 
     try:
@@ -56,28 +54,45 @@ def execute_query(sql, params=(), fetchone=False, fetchall=False):
                 result = cur.fetchone()
             elif fetchall:
                 result = cur.fetchall()
-            conn.commit()
+
+            # Commit only if modifying data
+            if sql.strip().lower().startswith(("insert", "update", "delete")):
+                conn.commit()
+
             return result
     except Exception as e:
-        # print("Error executing query:", e)
+        print(f"Error executing query: {e}")
         return None
     finally:
         try:
             conn.close()
-            # print("Database connection closed.")
         except Exception:
             pass
         try:
             server.stop()
-            # print("SSH tunnel closed.")
         except Exception:
             pass
 
 
-def main():
-    result = execute_query("SELECT version();", fetchone=True)
-    print("Result:", result)
+def close_connections(conn, server):
+    try:
+        conn.close()
+    except Exception:
+        pass
+    try:
+        server.stop()
+    except Exception:
+        pass
 
+def main():
+    conn, server = setup_connections()
+    if not conn or not server:
+        return
+    result = execute_query(conn, "SELECT version();", fetchone=True)
+    print("Result:", result)
+    # You can execute more queries here using the same conn
+    # result2 = execute_query(conn, "SELECT * FROM table;", fetchall=True)
+    close_connections(conn, server)
 
 if __name__ == "__main__":
     main()
