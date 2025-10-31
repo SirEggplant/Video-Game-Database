@@ -1,6 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
-from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
+from connection import connect_to_db, execute_query
 
 def create_collection(user_uuid, collection_name):
     sql = """

@@ -1,6 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
-from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
+from connection import connect_to_db, execute_query
 
 
 
