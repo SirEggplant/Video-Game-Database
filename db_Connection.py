@@ -63,14 +63,17 @@ def execute_query(sql, params=(), fetchone=False, fetchall=False):
                 result = cur.fetchone()
             elif fetchall:
                 result = cur.fetchall()
-
-            if sql.strip().lower().startswith(("insert", "update", "delete")):
-                conn.commit()
+            conn.commit()
 
             return result
     except Exception as e:
         print(f"Error executing query: {e}")
+        try:
+            conn.rollback()
+        except:
+            pass
         return None
+
 
 def close_connections():
     global conn, server
