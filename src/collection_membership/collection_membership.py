@@ -1,6 +1,10 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
+<<<<<<< HEAD
 from src.db_Connection import execute_query
+=======
+from db_Connection import execute_query
+>>>>>>> b3f8b53428799462283b0486ff9317744588338b
 
 PLATFORM = ["pc", "playstation 5","playstation",  "xbox", "nintendo switch", "xbox series x", "xbox series s", "xbox series x|s"]
 
