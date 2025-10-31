@@ -1,21 +1,21 @@
 import psycopg # pyright: ignore[reportMissingImports]
-from SteamUltraDeluxHDRemixRemastered2.authentication_and_session.authentication import (
+from .authentication_and_session.authentication import (
     login_with_email, register
 )
 
-from SteamUltraDeluxHDRemixRemastered2.collection_crud.collection import (
+from .collection_crud.collection import (
     create_collection, list_users_collections, add_game_to_collection, rename_collection, delete_collection, check_if_collection_exists
 )
 
-from SteamUltraDeluxHDRemixRemastered2.game_search_and_sorting.game import (
+from .game_search_and_sorting.game import (
     get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
 )
 
-from SteamUltraDeluxHDRemixRemastered2.printers.print_helper import (
+from .printers.print_helper import (
     print_games
 )
 
-from SteamUltraDeluxHDRemixRemastered2.collection_membership.collection_membership import(
+from .collection_membership.collection_membership import(
     add_platform_to_user
 )
 
