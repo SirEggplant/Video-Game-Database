@@ -135,7 +135,6 @@ def handle_login_with_email(tokens):
         return
     
     user = login_with_email(tokens[1], tokens[2])
-    print(user)
     if(user != None):
         UUID = user[0]
         LOGGED_IN = True
@@ -196,7 +195,6 @@ def handle_create_collection(tokens):
             if collection == None:
                 print("Collection already exists")
                 return
-            print_collections(collection)
 
 def handle_list_collection():
     if(check_if_logged_in()):

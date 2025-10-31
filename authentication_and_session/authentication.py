@@ -39,7 +39,6 @@ def login_with_email(email: str, password: str):
     
     try:
         result = execute_query(sql_select, (email, password),fetchone=True)
-        print(result)
         if result is None:
             return None
         execute_query(sql_update, (email,))
