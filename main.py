@@ -97,7 +97,7 @@ play <game_id> <minutes>
     Record that you played the game for the given time.
     The timestamp is stored automatically.
 
-play random <collection_name>
+play <minutes> <collection_name>
     Play a random game from a chosen collection.
 
 ──────────────────────────────────────────────
