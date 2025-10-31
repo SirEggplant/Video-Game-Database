@@ -1,6 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
-from SteamUltraDeluxHDRemixRemastered2.connection import execute_query
+from connection import execute_query
 
 esrbs = {'Early Childhood',
       'Everyone',
