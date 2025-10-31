@@ -195,7 +195,6 @@ def handle_create_collection(tokens):
             if collection == None:
                 print("Collection already exists")
                 return
-            print_collections(collection)
 
 def handle_list_collection():
     if(check_if_logged_in()):

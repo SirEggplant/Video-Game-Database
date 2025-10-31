@@ -1,6 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
-from connection import connect_to_db, execute_query
+from db_Connection import execute_query
 
 def create_collection(user_uuid, collection_name):
     sql = """
@@ -40,14 +40,14 @@ def add_game_to_collection(game_uuid: str, collection_uuid: str):
         WHERE collection_uuid = %s
         RETURNING collection_uuid, num_of_games
     """
-    with connect_to_db() as conn:
-        with conn.cursor() as cur:
-            cur.execute(sql_insert, (collection_uuid, game_uuid))
-            inserted = cur.fetchone()
-            if not inserted:
-                return None
-            cur.execute(sql_update, (collection_uuid,))
-            return cur.fetchone()
+    try:
+        inserted = execute_query(sql_insert, (collection_uuid, game_uuid))
+        if not inserted:
+            return None
+        result=execute_query(sql_update, (collection_uuid,),fetchone=True)
+        return result
+    except:
+        return None
 
 def rename_collection(user_uuid: str, old_name: str, new_name: str):
     sql_update = """
