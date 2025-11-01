@@ -126,8 +126,8 @@ following
 
 def show_reg_help():
     print(""" 
-          register <username, password, firstname, lastname, email>
-    Create a new user account. You’ll be prompted for name, email
+        register <username, password, firstname, lastname, email>
+        Create a new user account. You’ll be prompted for name, emailSky
           """)
     
 
@@ -342,10 +342,10 @@ def handle_play_game(tokens):
     if tokens[1] != "":
         game = play_Game(UUID, tokens)
         if game is None:
-            print("The game you are trying to play does not exist.")
+            print("You do not own the game you are trying to play.")
             return
         else:
-            print(game)
+            print("Played game: " + game[0] + " for " + game[1] + " minutes.")
             return
     else:
         print("Game name cannot be empty.")
@@ -365,7 +365,7 @@ def handle_rate_game(tokens):
             print("The game you are trying to rate does not exist.")
             return
         else:
-            print(game)
+            print("You gave " + game[0] + " a rating of " + str(game[1]))
             return
     else:
         print("Game name cannot be empty.")
@@ -386,7 +386,7 @@ def handle_buy_game(tokens):
             print("The game you are trying to buy does not exist.")
             return
         else:
-            print(game)
+            print("Bought game: " + game)
             return
     else:
         print("Game name cannot be empty.")
