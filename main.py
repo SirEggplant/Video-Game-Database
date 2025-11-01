@@ -4,7 +4,7 @@ from authentication_and_session.authentication import (
 )
 
 from collection_crud.collection import (
-    create_collection, list_users_collections, add_game_to_collection, rename_collection, delete_collection, check_if_collection_exists
+    create_collection, list_users_collections, add_game_to_collection, delete_game_from_collection, rename_collection, delete_collection, check_if_collection_exists
 )
 
 from game_search_and_sorting.game import (
@@ -198,6 +198,30 @@ def handle_create_collection(tokens):
             if collection == None:
                 print("Collection already exists")
                 return
+            
+def handle_delete_game_from_collection(tokens):
+    if(check_if_logged_in()):
+        if(len(tokens) <= 3 and tokens[2] != None):
+            print("collections remove <collection> <game>")
+        else:
+            result = delete_game_from_collection(tokens[2:])
+            if result == None:
+                print("Game does not exist")
+                return
+            else:
+                print("Successfuly removed game!")
+    
+def handle_add_game_to_collection(tokens):
+    if(check_if_logged_in()):
+        if(len(tokens) <= 3 and tokens[2] != None):
+            print("collections add <collection> <game>")
+        else:
+            result = add_game_to_collection(tokens[2:])
+            if result == None:
+                print("Game does not exist")
+                return
+            else:
+                print("Successfuly added game!")
 
 def handle_list_collection():
     if(check_if_logged_in()):
@@ -431,6 +455,10 @@ def main():
                 handle_rename_collection(tokens)
             elif(tokens[1].lower() == "delete"):
                 handle_delete_collection(tokens)
+            elif(tokens[1].lower() == "remove"):
+                handle_delete_game_from_collection(tokens)
+            elif(tokens[1].lower() == "add"):
+                handle_add_game_to_collection(tokens)
             continue
             
         elif tokens[0].lower() == "game":
@@ -444,18 +472,48 @@ def main():
         elif tokens[0].lower() == "platform":
             if(len(tokens) > 2 and tokens[1] == "add"):
                 handle_add_platform(tokens=tokens)
+                continue
                 
         elif tokens[0].lower() == "play":
             if(len(tokens) >= 2):
                 handle_play_game(tokens=tokens)
+                continue
                 
         elif tokens[0].lower() == "rate":
             if(len(tokens) >= 2):
                 handle_rate_game(tokens=tokens)
+                continue
                 
         elif tokens[0].lower() == "buy":
             if(len(tokens) >= 2):
                 handle_buy_game(tokens=tokens)
+                continue
+            
+        elif tokens[0].lower() == "users" and tokens[1].lower() == "user":
+            if(len(tokens) >= 2):
+                handle_buy_game(tokens=tokens)
+                continue
+        
+        elif tokens[0].lower() == "follow":
+            if(len(tokens) >= 2):
+                handle_buy_game(tokens=tokens)
+                continue
+            
+        elif tokens[0].lower() == "unfollow":
+            if(len(tokens) >= 2):
+                handle_buy_game(tokens=tokens)
+                continue
+            
+        elif tokens[0].lower() == "followers":
+            if(len(tokens) >= 2):
+                handle_buy_game(tokens=tokens)
+                continue  
+            
+        elif tokens[0].lower() == "following":
+            if(len(tokens) >= 2):
+                handle_buy_game(tokens=tokens)
+                
+                
                 
 
                 
