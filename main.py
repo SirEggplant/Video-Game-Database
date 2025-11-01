@@ -1,4 +1,7 @@
 import psycopg # pyright: ignore[reportMissingImports]
+
+
+
 from authentication_and_session.authentication import (
     login_with_email, register
 )
@@ -8,18 +11,23 @@ from collection_crud.collection import (
 )
 
 from game_search_and_sorting.game import (
-    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_uuid, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
+    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
 )
 
 from playing_games.game_Interactions import (
     play_Game, rate_Game, buy_Game
 )
+
 from printers.print_helper import (
     print_games
 )
 
 from collection_membership.collection_membership import(
     add_platform_to_user
+)
+
+from social.follow import(
+    follow, unfollow, get_followers, get_my_follows, search_by_email
 )
 
 
@@ -251,6 +259,53 @@ def handle_delete_collection(tokens):
         else:
             print("Collection does not exist")
             return
+        
+def handle_follow(tokens):
+    if(len(tokens) > 1 and check_if_logged_in()):
+        username = tokens[1]
+        result = follow(UUID, username)
+        if(result == None):
+            print("Username does not match user")
+        else:
+            print("Successfuly followed " + username)
+        
+def handle_unfollow(tokens):
+    if(len(tokens) > 1 and check_if_logged_in()):
+        username = tokens[1]
+        result = unfollow(UUID, username)
+        if(result == None):
+            print("Username does not match user")
+        else:
+            print("Successfuly unfollowed " + username)
+    
+def handle_get_followers():
+    if check_if_logged_in():
+        result = get_followers(UUID)
+        if(result == None):
+            print("You have no followers")
+        else:
+            print("Followers: ")
+            for follower in result:
+                print(follower)
+        
+def handle_get_my_follows():
+    if check_if_logged_in():
+        result = get_my_follows(UUID)
+        if(result == None):
+            print("You aren't following anyone")
+        else:
+            print("Following: ")
+            for follower in result:
+                print(follower)
+    
+def handle_search_by_email(tokens):
+    if(len(tokens) == 3 and check_if_logged_in()):
+        email = tokens[2]
+        result = search_by_email(email)
+        if(result == None):
+            print("Email does not match user")
+        else:
+            print(result)
     
 
 
@@ -417,7 +472,7 @@ def handle_buy_game(tokens):
 
 def check_if_logged_in():
     if UUID == "" or LOGGED_IN == False:
-        print("Please Login to create a collection")
+        print("Login Required First")
         return False
     return True
 
@@ -489,29 +544,29 @@ def main():
                 handle_buy_game(tokens=tokens)
                 continue
             
-        elif tokens[0].lower() == "users" and tokens[1].lower() == "user":
-            if(len(tokens) >= 2):
-                handle_buy_game(tokens=tokens)
+        elif tokens[0].lower() == "users" and tokens[1].lower() == "search":
+            if(len(tokens) == 3):
+                handle_search_by_email(tokens=tokens)
                 continue
         
         elif tokens[0].lower() == "follow":
-            if(len(tokens) >= 2):
-                handle_buy_game(tokens=tokens)
+            if(len(tokens) == 2):
+                handle_follow(tokens=tokens)
                 continue
             
         elif tokens[0].lower() == "unfollow":
-            if(len(tokens) >= 2):
-                handle_buy_game(tokens=tokens)
+            if(len(tokens) == 2):
+                handle_unfollow(tokens=tokens)
                 continue
             
         elif tokens[0].lower() == "followers":
-            if(len(tokens) >= 2):
-                handle_buy_game(tokens=tokens)
+            if(len(tokens) <= 2):
+                handle_get_followers()
                 continue  
             
         elif tokens[0].lower() == "following":
-            if(len(tokens) >= 2):
-                handle_buy_game(tokens=tokens)
+            if(len(tokens) <= 2):
+                handle_get_my_follows()
                 
                 
                 

@@ -10,8 +10,8 @@ import getpass
 
 load_dotenv()
 
-username = "jnd6300"  # Or use input("Username for db: ")
-password = "HuesOfRed-2022"  # Or use getpass.getpass("Password for db: ")
+username = input("Username for db: ")
+password = getpass.getpass("Password for db: ")
 dbName = "p320_46"
 
 # Module-level variables to hold persistent connection and SSH tunnel
