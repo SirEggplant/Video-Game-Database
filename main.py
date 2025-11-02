@@ -1,6 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 
-
+from db_Connection import close_connections
 
 from authentication_and_session.authentication import (
     login_with_email, register
@@ -478,9 +478,16 @@ def check_if_logged_in():
 
 def main():
     global UUID, LOGGED_IN
+    counter = 0
 
     show_help()
     while(True):
+        counter += 1
+        
+        if(counter == 8):
+            close_connections()
+            counter = 0
+        
         command = input(">")
         if command == "q" or command == "quit" or command == "exit":
             UUID = ""

@@ -68,9 +68,34 @@ def execute_query(sql, params=(), fetchone=False, fetchall=False):
                 conn.commit()
 
             return result
+    except (psycopg.errors.AdminShutdown, psycopg.errors.ConnectionException, psycopg.InterfaceError) as e:
+        # Handle connection closed or timeout exceptions by reconnecting once
+        print(f"Connection error detected: {e}, reconnecting...")
+        close_connections()
+        conn, server = setup_connections()
+        if conn is None or server is None:
+            print("Failed to re-establish DB connection after error")
+            return None
+
+        # Retry the query once after reconnecting
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                result = None
+                if fetchone:
+                    result = cur.fetchone()
+                elif fetchall:
+                    result = cur.fetchall()
+                if sql.strip().lower().startswith(("insert", "update", "delete")):
+                    conn.commit()
+                return result
+        except Exception as e2:
+            print(f"Error executing query after reconnect: {e2}")
+            return None
     except Exception as e:
         print(f"Error executing query: {e}")
         return None
+
 
 def close_connections():
     global conn, server
