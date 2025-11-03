@@ -7,38 +7,34 @@ from db_Connection import execute_query
 def buy_Game(user_id: str, parts):
     
     game_title = " ".join(parts[1:])
-    rating = None
+    rating = random.randint(1,5)
 
     if not user_id or not game_title:
         return None
     
-    sql_select = """
-        SELECT game_UUID
-        FROM game_listing
-        WHERE title ILIKE %s
-    """
-    
     sql_insert = """
         INSERT INTO user_owns_game
-        (user_UUID, game_UUID, time_played)
-        VALUES(%s, %s, %s::esrb)
-        RETURNING game_UUID
+        (user_uuid, game_uuid, rating)
+        VALUES (%s, %s, %s)
+        RETURNING game_uuid
     """
 
     try:
-        game_id = execute_query(sql_select, (game_title,), fetchone=True)
-        if not game_id or not game_id.get("game_UUID"):
-            return None
-        
-        execute_query(sql_insert, (user_id, str(game_id.get("game_UUID")), rating))
+        # Add wildcards for partial matching
+        game_id = get_game_from_title(game_title)
+        execute_query(sql_insert, (user_id, game_id, rating))
+        # Return game_id string as useful success indicator
+        return game_title
     except:
+        # Optionally log the exception e here
         return None
+
 
 def rate_Game(user_id: str, parts):
 
-    if len(parts) >= 2 and parts[1].isdigit():
-        game_title = parts[2:]
-        rating = int(parts[1])
+    if len(parts) >= 2 and parts[-1].isdigit():
+        game_title = " ".join(parts[1:-1])
+        rating = int(parts[-1])
     else:
         return None
 
@@ -53,12 +49,6 @@ def rate_Game(user_id: str, parts):
         if not user_id or not game_title:
             return None
 
-    sql_select = """
-        SELECT game_UUID
-        FROM game_listing
-        WHERE title = %s
-    """
-
     sql_update = """
         UPDATE user_owns_game 
         SET rating = %s 
@@ -66,55 +56,50 @@ def rate_Game(user_id: str, parts):
     """
 
     try:
-        game_id = execute_query(sql_select, (game_title), fetchone=True)
-        if not game_id or not game_id.get("game_UUID"):
-            return None
+        game_id = get_game_from_title(game_title)
 
         execute_query(sql_update, (rating, game_id, user_id))
+        return (game_title, rating)
     except:
         return None
 
 
 def play_Game(user_id: str, parts):
 
-    if len(parts) == 2 and parts[1].isdigit():
-        game_title = parts[2:]
+    if len(parts) > 1 and parts[1].isdigit():
+        game_title = " ".join(parts[2:])  # safe to use if length >=3; else this will be empty string
         time_played = int(parts[1])
-    elif len(parts) == 2 and parts[:1].isdigit():
-        time_played = int(parts[1:])
-        collection_name = parts[:1]
+    elif len(parts) > 0 and parts[-1].isdigit():
+        time_played = int(parts[-1])
+        collection_name = " ".join(parts[1:-1])  # empty if length < 3
+        game_title = ""
     else:
         game_title = " ".join(parts[1:])
-        time_played = random.randint(1, 120)
+        time_played = str(random.randint(1, 120))
+
+        
+    if game_title == "":
+            game_id = get_Random_Game_From_Collection(collection_name, user_id)
 
     sql_select_game = """
         SELECT user_owns_game.game_UUID 
         FROM user_owns_game
-        INNER JOIN game on user_owns_game.game_UUID = game.game_UUID
-        WHERE title ILIKE %s AND user_owns_game.user_UUID = %s """
+        WHERE game_uuid = %s AND user_UUID = %s """
 
     try:
-        print(game_title)
-        print(user_id)
-        game_id = execute_query(sql_select_game, (game_title, str(user_id)), fetchone=True)
-        print(game_id)
-        if not game_id or not game_id.get("game_UUID"):
+        game_id = get_game_from_title(game_title)
+        owned = execute_query(sql_select_game, (game_id,user_id), fetchone=True)
+        if not owned:
             return None
-        
-        if time_played == 0:
-            time_played = random.randint(1,120)
-
-        if game_id == "":
-            game_id = get_Random_Game_From_Collection(collection_name, user_id)
     except:
-        if not user_id or not time_played or (not game_id):
+        if not user_id or not time_played:
             return None
 
     sql_update = """
-        UPDATE game_listing 
-        SET total_playtime_minutes = total_playtime_minutes + %s 
-        WHERE game_UUID = %s
-    """
+            UPDATE "user" 
+            SET total_playtime = total_playtime + %s
+            WHERE user_uuid = %s
+        """
 
     sql_insert = """
         INSERT INTO user_plays
@@ -125,10 +110,27 @@ def play_Game(user_id: str, parts):
 
     try:
         execute_query(sql_insert,(game_id, user_id, time_played))
-        execute_query(sql_update, (time_played, game_id))
-        return game_id
+        execute_query(sql_update, (time_played, user_id))
+        return (game_title, time_played)
     except:
         return None
+    
+def get_game_from_title(game_title: str):
+    sql_select = """
+        SELECT game_uuid
+        FROM game_listing
+        WHERE title ILIKE %s
+    """
+    
+    try:
+        pattern = f"%{game_title}%"
+        game_id_result = execute_query(sql_select, (pattern,), fetchone=True)
+        game_id_str = str(game_id_result[0])
+        if game_id_str == "":
+            return None
+        return game_id_str
+    except:
+        None
     
 def get_Random_Game_From_Collection(collection_name: str, user_id: str):
     if not collection_id and not user_id:

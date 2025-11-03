@@ -28,7 +28,13 @@ def list_users_collections(user_uuid: str):
     except:
         return None
     
-def add_game_to_collection(game_uuid: str, collection_uuid: str):
+def add_game_to_collection(tokens):
+    collection_name = tokens[0]
+    game_title = " ".join(tokens[1:])
+
+    game_uuid = get_game_from_title(game_title)    
+    collection_uuid = get_collection_from_name(collection_name)
+    
     sql_insert = """
         INSERT INTO collection_contains (collection_uuid, game_uuid)
         VALUES (%s, %s)
@@ -41,13 +47,70 @@ def add_game_to_collection(game_uuid: str, collection_uuid: str):
         RETURNING collection_uuid, num_of_games
     """
     try:
-        inserted = execute_query(sql_insert, (collection_uuid, game_uuid))
-        if not inserted:
-            return None
+        execute_query(sql_insert, (collection_uuid, game_uuid))
         result=execute_query(sql_update, (collection_uuid,),fetchone=True)
         return result
     except:
         return None
+    
+def delete_game_from_collection(tokens):
+    collection_name = tokens[0]
+    game_title = " ".join(tokens[1:])
+
+    game_uuid = get_game_from_title(game_title)
+    collection_uuid = get_collection_from_name(collection_name)
+    
+    sql_delete = """
+        DELETE FROM collection_contains
+        WHERE collection_uuid = %s AND game_uuid = %s
+        RETURNING collection_uuid
+    """
+    sql_update = """
+        UPDATE collection
+        SET num_of_games = num_of_games - 1
+        WHERE collection_uuid = %s
+        RETURNING collection_uuid, num_of_games
+    """
+    try:
+        execute_query(sql_delete, (collection_uuid, game_uuid))
+        result = execute_query(sql_update, (collection_uuid,),fetchone=True)
+        return result
+    except:
+        return None
+  
+def get_game_from_title(game_title: str):
+    sql_select = """
+        SELECT game_uuid
+        FROM game_listing
+        WHERE title ILIKE %s
+    """
+    
+    try:
+        pattern = f"%{game_title}%"
+        game_id_result = execute_query(sql_select, (pattern,), fetchone=True)
+        game_id_str = str(game_id_result[0])
+        if game_id_str == "":
+            return None
+        return game_id_str
+    except:
+        None  
+  
+def get_collection_from_name(collection_title: str):
+    sql_select = """
+        SELECT collection_uuid
+        FROM collection
+        WHERE collection_name ILIKE %s
+    """
+    
+    try:
+        pattern = f"%{collection_title}%"
+        collection_id = execute_query(sql_select, (pattern,), fetchone=True)
+        collection_str = str(collection_id[0])
+        if collection_str == "":
+            return None
+        return collection_str
+    except:
+        None
 
 def rename_collection(user_uuid: str, old_name: str, new_name: str):
     sql_update = """
