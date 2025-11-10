@@ -11,7 +11,7 @@ from collection_crud.collection import (
 )
 
 from game_search_and_sorting.game import (
-    get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
+    get_game_all, get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
 )
 
 from playing_games.game_Interactions import (
@@ -68,10 +68,10 @@ register <username, password, firstname, lastname, email>
 ──────────────────────────────────────────────
 🎮  GAME & COLLECTION COMMANDS
 ──────────────────────────────────────────────
-games list
+game list
     List all available games (name, platform, genre, release date, price).
 
-games search <field> <keyword>
+game search <field> <keyword>
     Search for games by title, genre, platform, release year, developer,
     publisher, or price range.
     Example: games search genre RPG
@@ -527,6 +527,10 @@ def main():
             if(len(tokens) >= 2 and tokens[1] == "search"):
                 handle_game_search(tokens=tokens)
                 continue
+            elif(tokens[1] == "list"):
+                rows = get_game_all()
+                print_games(rows=rows)
+                return
         
         elif tokens[0].lower() == "sort":
             if(len(tokens) >= 2):

@@ -289,7 +289,21 @@ def get_games_by_esrb(esrb: str):
     except Exception as e:
         print(f"Error fetching games by developer: {e}")
         return None
-   
+    
+def get_game_all():
+    sql = """ 
+        SELECT game_uuid, title, platforms, developers, publishers,
+        total_playtime_minutes, esrb_rating, total_user_rating,
+        first
+        release_date, release_year, min_price, max_price, genres
+        FROM game_listing
+    """
+    try:
+        rows = execute_query(sql=sql, fetchall=True)
+        return rows
+    except Exception as e:
+        print(f"Error fetching games by developer: {e}")
+        return None
 
 def main():
     pass
