@@ -294,8 +294,7 @@ def get_game_all():
     sql = """ 
         SELECT game_uuid, title, platforms, developers, publishers,
         total_playtime_minutes, esrb_rating, total_user_rating,
-        first
-        release_date, release_year, min_price, max_price, genres
+        first_release_date, release_year, min_price, max_price, genres
         FROM game_listing
     """
     try:
