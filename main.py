@@ -3,7 +3,7 @@ import psycopg # pyright: ignore[reportMissingImports]
 from db_Connection import close_connections
 
 from authentication_and_session.authentication import (
-    login_with_email, register
+    login_with_email, login_with_user, register
 )
 
 from collection_crud.collection import (
@@ -146,6 +146,20 @@ def handle_login_with_email(tokens):
         return
     
     user = login_with_email(tokens[1], tokens[2])
+    if(user != None):
+        UUID = user[0]
+        LOGGED_IN = True
+        print("Welcome Back " + user[3])
+    else:
+        print("User Could not be found")
+        
+def handle_login_with_username(tokens):
+    global UUID, LOGGED_IN
+    if(len(tokens) != 3):
+        print("login <username> <password>")
+        return
+    
+    user = login_with_user(tokens[1], tokens[2])
     if(user != None):
         UUID = user[0]
         LOGGED_IN = True
@@ -496,7 +510,10 @@ def main():
         
         tokens = command.split(" ")
         if tokens[0].lower() == "login":
-            handle_login_with_email(tokens)
+            if '@' in tokens[1]:
+                handle_login_with_email(tokens)
+            else:
+                handle_login_with_username(tokens)
             continue
 
         elif tokens[0].lower() == "reg" or tokens[0].lower() == "register":

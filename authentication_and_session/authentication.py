@@ -7,7 +7,7 @@ from db_Connection import execute_query
 def login_with_user(username: str, password: str):
 
     sql_select = """
-        SELECT user_uuid FROM "user" WHERE username = %s AND password = %s
+        SELECT * FROM "user" WHERE username = %s AND password = %s
     """
 
     sql_update = """
@@ -19,6 +19,8 @@ def login_with_user(username: str, password: str):
 
     try:
         result = execute_query(sql_select, (username, password), fetchone=True)
+        if result is None:
+            return None
         execute_query(sql_update, (username,))
         return result
     except Exception as e:
