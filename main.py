@@ -68,10 +68,10 @@ register <username, password, firstname, lastname, email>
 ──────────────────────────────────────────────
 🎮  GAME & COLLECTION COMMANDS
 ──────────────────────────────────────────────
-games list
+game list
     List all available games (name, platform, genre, release date, price).
 
-games search <field> <keyword>
+game search <field> <keyword>
     Search for games by title, genre, platform, release year, developer,
     publisher, or price range.
     Example: games search genre RPG
@@ -527,6 +527,10 @@ def main():
             if(len(tokens) >= 2 and tokens[1] == "search"):
                 handle_game_search(tokens=tokens)
                 continue
+            elif(tokens[1] == "list"):
+                rows = get_game_all()
+                print_games(rows=rows)
+                return
         
         elif tokens[0].lower() == "sort":
             if(len(tokens) >= 2):

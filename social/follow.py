@@ -4,7 +4,7 @@ from db_Connection import execute_query
 def get_followers(uuid: str):
     
     sql = """
-        SELECT followers_user_uuid FROM follows 
+        SELECT follower_user_uuid FROM follows 
         WHERE followed_user_uuid = %s
     """
     
@@ -64,14 +64,13 @@ def unfollow(follower_id: str, username_followed: str):
     
 def search_by_email(email: str):
     sql="""
-    SELECT user_UUID, username, email
+    SELECT username
     FROM "user"
-    Where email ILIKE %s
+    WHERE email = %s
     """
     
     try:
-        pattern = f"%{email}%"
-        return execute_query(sql,(pattern,), fetchall=True)[1]
+        return str(execute_query(sql,(email,), fetchall=True)[0][0])
     except:
         return None
 
