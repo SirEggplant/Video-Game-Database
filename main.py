@@ -223,7 +223,7 @@ def handle_create_collection(tokens):
             
 def handle_delete_game_from_collection(tokens):
     if(check_if_logged_in()):
-        if(len(tokens) <= 3 and tokens[2] != None):
+        if(len(tokens) <= 3 and not tokens[2]):
             print("collections remove <collection> <game>")
         else:
             result = delete_game_from_collection(tokens[2:])
@@ -238,7 +238,7 @@ def handle_add_game_to_collection(tokens):
         if(len(tokens) <= 3 and tokens[2] != None):
             print("collections add <collection> <game>")
         else:
-            result = add_game_to_collection(tokens[2:])
+            result = add_game_to_collection(tokens[2:], UUID)
             if result == None:
                 print("Game does not exist")
                 return
@@ -492,15 +492,9 @@ def check_if_logged_in():
 
 def main():
     global UUID, LOGGED_IN
-    counter = 0
 
     show_help()
     while(True):
-        counter += 1
-        
-        if(counter == 8):
-            close_connections()
-            counter = 0
         
         command = input(">")
         if command == "q" or command == "quit" or command == "exit":

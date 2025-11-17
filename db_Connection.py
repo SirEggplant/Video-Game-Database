@@ -4,6 +4,7 @@ warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
 
 import psycopg
 import os
+import time
 from sshtunnel import SSHTunnelForwarder
 from dotenv import load_dotenv
 import getpass
@@ -17,6 +18,11 @@ dbName = "p320_46"
 # Module-level variables to hold persistent connection and SSH tunnel
 conn = None
 server = None
+
+def reset_connection():
+    while True:
+        close_connections()
+        time.sleep(300)
 
 def setup_connections():
     global conn, server

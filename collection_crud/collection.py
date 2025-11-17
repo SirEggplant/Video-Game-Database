@@ -41,7 +41,7 @@ def add_game_to_collection(tokens, user_uuid: str):
 
     isOwned = user_owns_collection(user_uuid,game_uuid)
     if(not isOwned):
-        return "You do not own the game " + str(game_title) + "!"
+        print("You do not own the game " + str(game_title) + "!")
     
     sql_insert = """
         INSERT INTO collection_contains (collection_uuid, game_uuid)
@@ -57,6 +57,7 @@ def add_game_to_collection(tokens, user_uuid: str):
     try:
         execute_query(sql_insert, (collection_uuid, game_uuid))
         result=execute_query(sql_update, (collection_uuid,),fetchone=True)
+        print(result + " Was printed")
         return result
     except:
         return None
@@ -73,6 +74,7 @@ def delete_game_from_collection(tokens):
         WHERE collection_uuid = %s AND game_uuid = %s
         RETURNING collection_uuid
     """
+    
     sql_update = """
         UPDATE collection
         SET num_of_games = num_of_games - 1
@@ -80,8 +82,9 @@ def delete_game_from_collection(tokens):
         RETURNING collection_uuid, num_of_games
     """
     try:
-        execute_query(sql_delete, (collection_uuid, game_uuid))
-        result = execute_query(sql_update, (collection_uuid,),fetchone=True)
+        temp = execute_query(sql_delete, (collection_uuid, game_uuid), fetchone=True)
+        print(temp + " Was printed")
+        result = execute_query(sql_update, (collection_uuid,), fetchone=True)
         return result
     except:
         return None
