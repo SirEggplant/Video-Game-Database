@@ -547,7 +547,7 @@ def main():
             elif(tokens[1] == "list"):
                 rows = get_game_all()
                 print_games(rows=rows)
-                return
+                continue
         
         elif tokens[0].lower() == "sort":
             if(len(tokens) >= 2):
