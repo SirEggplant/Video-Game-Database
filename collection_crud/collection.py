@@ -37,8 +37,8 @@ def add_game_to_collection(tokens, user_uuid: str):
     
     isOwned = user_owns_collection(user_uuid,collection_name)
     if(not isOwned):
-        return "You do not own the collection " + str(collection_name) + "!"
-    
+        print("You do not own the collection " + str(collection_name) + "!")
+
     isOwned = user_owns_collection(user_uuid,game_uuid)
     if(not isOwned):
         return "You do not own the game " + str(game_title) + "!"
