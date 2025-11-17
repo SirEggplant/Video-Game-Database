@@ -55,10 +55,9 @@ def add_game_to_collection(tokens, user_uuid: str):
         RETURNING collection_uuid, num_of_games
     """
     try:
-        execute_query(sql_insert, (collection_uuid, game_uuid))
-        result=execute_query(sql_update, (collection_uuid,),fetchone=True)
-        print(result + " Was printed")
-        return result
+        execute_query(sql_insert, (collection_uuid, game_uuid),fetchone=True)
+        execute_query(sql_update, (collection_uuid,))
+        return True
     except:
         return None
     
@@ -82,10 +81,9 @@ def delete_game_from_collection(tokens):
         RETURNING collection_uuid, num_of_games
     """
     try:
-        temp = execute_query(sql_delete, (collection_uuid, game_uuid), fetchone=True)
-        print(temp + " Was printed")
-        result = execute_query(sql_update, (collection_uuid,), fetchone=True)
-        return result
+        execute_query(sql_delete, (collection_uuid, game_uuid))
+        execute_query(sql_update, (collection_uuid,))
+        return True
     except:
         return None
   
@@ -155,9 +153,8 @@ def check_if_collection_exists(user_uuid: str, collection_name: str):
 
 def user_owns_collection(user_uuid: str, collection_name: str):
     sql = """
-        SELECT 1 FROM collection WHERE
+        SELECT * FROM collection WHERE
         user_uuid = %s AND collection_name = %s
-        LIMIT 1
     """
     
     try:
