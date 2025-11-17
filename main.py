@@ -242,6 +242,9 @@ def handle_add_game_to_collection(tokens):
             if result == None:
                 print("Game does not exist")
                 return
+            elif(type(result) == str):
+                print(result)
+                return
             else:
                 print("Successfuly added game!")
 

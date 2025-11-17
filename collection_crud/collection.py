@@ -28,12 +28,20 @@ def list_users_collections(user_uuid: str):
     except:
         return None
     
-def add_game_to_collection(tokens):
+def add_game_to_collection(tokens, user_uuid: str):
     collection_name = tokens[0]
     game_title = " ".join(tokens[1:])
 
     game_uuid = get_game_from_title(game_title)    
     collection_uuid = get_collection_from_name(collection_name)
+    
+    isOwned = user_owns_collection(user_uuid,collection_name)
+    if(not isOwned):
+        return "You do not own the collection " + str(collection_name) + "!"
+    
+    isOwned = user_owns_collection(user_uuid,game_uuid)
+    if(not isOwned):
+        return "You do not own the game " + str(game_title) + "!"
     
     sql_insert = """
         INSERT INTO collection_contains (collection_uuid, game_uuid)
@@ -140,6 +148,22 @@ def check_if_collection_exists(user_uuid: str, collection_name: str):
 
     result = execute_query(sql, (user_uuid, collection_name,), fetchone=True)
     return result
+
+
+def user_owns_collection(user_uuid: str, collection_name: str):
+    sql = """
+        SELECT 1 FROM collection WHERE
+        user_uuid = %s AND collection_name = %s
+        LIMIT 1
+    """
+    
+    try:
+        result = execute_query(sql, (user_uuid, collection_name,), fetchone=True)
+        if(not result):
+            return None
+        return result
+    except:
+        return None
 
 
 def main():
