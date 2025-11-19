@@ -7,7 +7,7 @@ from authentication_and_session.authentication import (
 )
 
 from collection_crud.collection import (
-    create_collection, list_users_collections, add_game_to_collection, delete_game_from_collection, rename_collection, delete_collection, check_if_collection_exists
+    amount_of_collections, create_collection, list_users_collections, add_game_to_collection, delete_game_from_collection, rename_collection, delete_collection, check_if_collection_exists
 )
 
 from game_search_and_sorting.game import (
@@ -81,6 +81,9 @@ collections list
         • Collection name
         • Number of games
         • Total playtime (hh:mm)
+        
+collections amount
+    Show the total number of collections you have.
 
 collections create <name>
     Create a new collection.
@@ -273,6 +276,11 @@ def handle_delete_collection(tokens):
         else:
             print("Collection does not exist")
             return
+        
+def handle_amount_of_collections(tokens):
+    if(check_if_logged_in()):
+        amount = amount_of_collections(UUID)
+        print("You have " + str(amount) + " collections.")
         
 def handle_follow(tokens):
     if(len(tokens) > 1 and check_if_logged_in()):
@@ -532,6 +540,8 @@ def main():
                 handle_delete_game_from_collection(tokens)
             elif(tokens[1].lower() == "add"):
                 handle_add_game_to_collection(tokens)
+            elif(tokens[1].lower() == "amount"):
+                handle_amount_of_collections(tokens)
             continue
             
         elif tokens[0].lower() == "game":

@@ -150,6 +150,20 @@ def check_if_collection_exists(user_uuid: str, collection_name: str):
     result = execute_query(sql, (user_uuid, collection_name,), fetchone=True)
     return result
 
+def amount_of_collections(user_uuid: str):
+    sql = """
+        SELECT COUNT(*) FROM collection WHERE
+        user_uuid = %s
+    """
+    
+    try:
+        result = execute_query(sql, (user_uuid,), fetchone=True)
+        if(not result):
+            return 0
+        return result[0]
+    except:
+        return 0
+
 
 def user_owns_collection(user_uuid: str, collection_name: str):
     sql = """
