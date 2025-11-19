@@ -30,6 +30,13 @@ from social.follow import(
     follow, unfollow, get_followers, get_my_follows, search_by_email
 )
 
+from recommendation_system.recommendation_system import (
+    get_top_20_games_of_following,
+    get_top_20_games,
+    get_top_5_released,
+    recommend_games
+)
+
 
 UUID :str = ""
 LOGGED_IN : bool = False
@@ -492,6 +499,46 @@ def handle_buy_game(tokens):
     else:
         print("Game name cannot be empty.")
 
+def handle_recommend(tokens):
+    if not check_if_logged_in():
+        print("You must be logged in to rate a game.")
+        return
+    if(len(tokens) == 1):
+        rows = recommend_games(user_uuid=UUID)
+        if rows is None:
+            print("An error occured getting your recommended games")
+            return
+        else:
+            print_games(rows=rows)
+            return
+    elif(len(tokens) == 2 and tokens[1] == "following"):
+        rows = get_top_20_games_of_following(user_uuid=UUID)
+        if rows is None:
+            print("An error occured getting your recommended games")
+            return
+        else:
+            print_games(rows=rows)
+
+def handle_top(tokens):
+    if(len(tokens) == 1):
+        rows = get_top_20_games()
+        if rows is None:
+            print("An error occured getting the top 20 games")
+            return
+        else:
+            print_games(rows=rows)
+            return
+    elif(len(tokens) == 2 and tokens[1] == "release"):
+        rows = get_top_5_released()
+        if rows is None:
+            print("An error occured getting the top 5 releases in the last 3 months")
+            return
+        else:
+            print_games(rows=rows)
+            return
+    else:
+        print("Incorrect arguments")      
+
 def check_if_logged_in():
     if UUID == "" or LOGGED_IN == False:
         print("Login Required First")
@@ -599,7 +646,12 @@ def main():
         elif tokens[0].lower() == "following":
             if(len(tokens) <= 2):
                 handle_get_my_follows()
-                
+        elif tokens[0].lower() == "recommend":
+            if(len(tokens) <= 2):
+                handle_recommend(tokens=tokens)
+        elif tokens[0].lower() == "top":
+            if(len(tokens) <= 2):
+                handle_top(tokens=tokens)
                 
                 
 
