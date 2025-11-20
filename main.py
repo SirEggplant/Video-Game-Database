@@ -505,7 +505,7 @@ def handle_recommend(tokens):
         return
     if(len(tokens) == 1):
         rows = recommend_games(user_uuid=UUID)
-        if rows is None:
+        if rows is None or len(rows) == 0:
             print("An error occured getting your recommended games")
             return
         else:

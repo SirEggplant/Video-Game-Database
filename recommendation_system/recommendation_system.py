@@ -32,6 +32,7 @@ def get_top_20_games():
         rows = execute_query(sql=sql, fetchall=True)
         return rows
     except: 
+        print("A SQL error occured getting the top 20 games")
         return None
     
 def get_top_20_games_of_following(user_uuid: str):
@@ -65,6 +66,7 @@ def get_top_20_games_of_following(user_uuid: str):
         rows = execute_query(sql=sql,params=(user_uuid,), fetchall=True)
         return rows
     except: 
+        print("A SQL error occured getting the top 20 games of following users")
         return None
     
 
@@ -94,6 +96,7 @@ def get_top_5_released():
         rows = execute_query(sql=sql, fetchall=True)
         return rows
     except: 
+        print("A SQL error occured getting the top 5 releases")
         return None
     
 def recommend_games(user_uuid: str):
@@ -148,6 +151,7 @@ def recommend_games(user_uuid: str):
         rows = execute_query(sql=sql,params=(user_uuid, user_uuid), fetchall=True)
         return rows
     except: 
+        print("A SQL error occured getting the top 20 recommended games")
         return None
 
 def main():
