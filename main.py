@@ -285,10 +285,10 @@ def handle_amount_of_collections(tokens):
 ##This will be the standard for printing details relating to a user    
 def print_users(users):
     print("Username | Followers | Following | Collections")
-    print("-----------------------------")
+    print("----------------------------------------------")
     for user in users:
         print(f"{user[0]} | {user[1][0]} | {user[1][1]} | {user[1][2]}")
-        print("-----------------------------")
+        print("----------------------------------------------")
     
 
 
