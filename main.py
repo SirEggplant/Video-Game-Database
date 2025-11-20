@@ -281,7 +281,18 @@ def handle_amount_of_collections(tokens):
     if(check_if_logged_in()):
         amount = amount_of_collections(UUID)
         print("You have " + str(amount) + " collections.")
-        
+
+##This will be the standard for printing details relating to a user    
+def print_users(users):
+    print("Username | Followers | Following | Collections")
+    print("-----------------------------")
+    for user in users:
+        print(f"{user[0]} | {user[1][0]} | {user[1][1]} | {user[1][2]}")
+        print("-----------------------------")
+    
+
+
+
 def handle_follow(tokens):
     if(len(tokens) > 1 and check_if_logged_in()):
         username = tokens[1]
@@ -306,9 +317,7 @@ def handle_get_followers():
         if(result == None):
             print("You have no followers")
         else:
-            print("Followers: ")
-            for follower in result:
-                print(follower)
+            print_users(result)
         
 def handle_get_my_follows():
     if check_if_logged_in():
@@ -316,9 +325,7 @@ def handle_get_my_follows():
         if(result == None):
             print("You aren't following anyone")
         else:
-            print("Following: ")
-            for follower in result:
-                print(follower)
+            print_users(result)
     
 def handle_search_by_email(tokens):
     if(len(tokens) == 3 and check_if_logged_in()):
@@ -327,7 +334,7 @@ def handle_search_by_email(tokens):
         if(result == None):
             print("Email does not match user")
         else:
-            print(result)
+            print_users(result)
     
 
 

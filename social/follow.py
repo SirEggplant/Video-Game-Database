@@ -1,5 +1,6 @@
 import psycopg # pyright: ignore[reportMissingImports]
 from db_Connection import execute_query
+from collection_crud.collection import *
 
 def get_followers(uuid: str):
     
@@ -9,13 +10,13 @@ def get_followers(uuid: str):
     """
     
     try:
-        followers = execute_query(sql, (uuid,),fetchall=True)
-        followers_rows = execute_query(sql, (uuid,), fetchall=True)
-        followers_dict = {}
-        for row in followers_rows:
+        followers = execute_query(sql, (uuid,), fetchall=True)
+        followers_list = []
+        for row in followers:
             follower_id = row[0]  # assuming the follower UUID is the first column
-            followers_dict[follower_id] = get_username_from_id(follower_id)
-        return followers_dict
+            username = get_username_from_id(follower_id)
+            followers_list.append((username, otherUser_details(username)))
+        return followers_list
 
     except:
         return None
@@ -30,7 +31,8 @@ def get_my_follows(uuid: str):
         followers_rows = execute_query(sql, (uuid,), fetchall=True)
         result = []
         for row in followers_rows:
-            result.append(get_username_from_id(row[0]))
+            username = get_username_from_id(row[0])
+            result.append((username, otherUser_details(username)))
         return result
     except:
         return None
@@ -42,7 +44,7 @@ def follow(follower_id: str, username_followed: str):
     sql = """
     INSERT INTO follows(follower_user_uuid, followed_user_uuid) VALUES (%s, %s)
     RETURNING *
-"""
+    """
     try:
         return execute_query(sql,(follower_id, followed_id), fetchall=True)
     except:
@@ -70,7 +72,10 @@ def search_by_email(email: str):
     """
     
     try:
-        return str(execute_query(sql,(email,), fetchall=True)[0][0])
+        found_username = execute_query(sql,(email,), fetchall=True)[0][0]
+        found_users = []
+        found_users.append((str(found_username), otherUser_details(str(found_username))))
+        return found_users
     except:
         return None
 
@@ -81,6 +86,10 @@ def get_username_from_id(id):
     FROM "user"
     Where user_uuid = %s
     """
+    
+    users_Collections = otherUser_followers(id)
+    users_Collections = otherUser_followers(id)
+    users_Collections = otherUser_followers(id)
     
     try:
         username = execute_query(sql_select, (id,), fetchone=True)
@@ -107,6 +116,46 @@ def get_user_from_username(username: str):
         return user_str
     except:
         return None
+    
+def otherUser_details(username: str):
+    user_uuid = get_user_from_username(username)
+    try:
+        u_followers = otherUser_followers(user_uuid)
+        u_followings = otherUser_followings(user_uuid)
+        u_collections = amount_of_collections(user_uuid)
+        return (u_followers, u_followings, u_collections)
+    except:
+        return None
+    
+    
+    
+def otherUser_followers (user_uuid: str):
+    sql = """
+        SELECT COUNT(*) FROM follows WHERE
+        followed_user_UUID = %s
+    """
+    
+    try:
+        result = execute_query(sql, (user_uuid,), fetchone=True)
+        if(not result):
+            return 0
+        return result[0]
+    except:
+        return 0
+    
+def otherUser_followings (user_uuid: str):
+    sql = """
+        SELECT COUNT(*) FROM follows WHERE
+        follower_user_UUID = %s
+    """
+    
+    try:
+        result = execute_query(sql, (user_uuid,), fetchone=True)
+        if(not result):
+            return 0
+        return result[0]
+    except:
+        return 0
 
 def main():
     # print(follow("44ecfb56-8c85-4165-b085-fb2ebc53b238","e254a2c5-83f9-4600-9dc4-5afcd343ff10"))
