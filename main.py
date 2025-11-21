@@ -11,7 +11,7 @@ from collection_crud.collection import (
 )
 
 from game_search_and_sorting.game import (
-    get_game_all, get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb
+    get_game_all, get_game_by_title, get_game_by_release_year, get_game_by_genre, get_game_by_platform, get_game_by_developer, get_game_by_publisher, get_game_by_price_between, get_game_by_price_lower_than, sort_by, get_games_by_esrb, get_game_uuid_by_title
 )
 
 from playing_games.game_Interactions import (
@@ -74,6 +74,7 @@ game list
 game search <field> <keyword>
     Search for games by title, genre, platform, release year, developer,
     publisher, or price range.
+    Search for game uuid by title: <uuid> <title>
     Example: games search genre RPG
 
 collections list
@@ -395,7 +396,16 @@ games search <field> <keyword>
                     rows = get_games_by_esrb(tokens[3])
                     print_games(rows=rows)
                     return
-
+            case "uuid":
+                if(len(tokens) == 4):
+                    game_title = tokens[3]
+                    uuid = get_game_uuid_by_title(game_title)
+                    if uuid:
+                        print(f"UUID for '{game_title}': {uuid}")
+                    return
+                else:
+                    print("game search uuid <game_title>")
+                    return
 
 def handle_add_platform(tokens):
     if check_if_logged_in():

@@ -303,6 +303,25 @@ def get_game_all():
     except Exception as e:
         print(f"Error fetching games by developer: {e}")
         return None
+    
+def get_game_uuid_by_title(game_title: str):
+    """
+    Simple function to get game UUID by title
+    """
+    sql = """
+        SELECT game_uuid, title 
+        FROM game_listing 
+        WHERE title ILIKE %s
+        LIMIT 1
+    """
+    
+    try:
+        row = execute_query(sql, (f"%{game_title}%",), fetchone=True)
+        if row:
+            return row[0]
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 
 def main():
     pass
