@@ -646,13 +646,15 @@ def main():
         elif tokens[0].lower() == "following":
             if(len(tokens) <= 2):
                 handle_get_my_follows()
+                continue
         elif tokens[0].lower() == "recommend":
             if(len(tokens) <= 2):
                 handle_recommend(tokens=tokens)
+                continue
         elif tokens[0].lower() == "top":
             if(len(tokens) <= 2):
                 handle_top(tokens=tokens)
-                
+                continue
                 
 
                 
