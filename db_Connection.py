@@ -100,6 +100,7 @@ def execute_query(sql, params=(), fetchone=False, fetchall=False):
         print(f"Error executing query: {e}")
         try:
             conn.rollback()
+            close_connections()
         except:
             pass
         return None
