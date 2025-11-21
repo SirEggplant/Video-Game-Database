@@ -13,8 +13,10 @@ def create_collection(user_uuid, collection_name):
 
     try:
         row = execute_query(sql, (collection_uuid, user_uuid, collection_name), fetchone=True)
+        print(f"Collection '{collection_name}' created successfully!")
         return row
     except:
+        print(f"Error creating collection '{collection_name}': {e}")
         return None
 
 def list_users_collections(user_uuid: str):
