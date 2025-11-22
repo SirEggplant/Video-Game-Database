@@ -8,7 +8,7 @@ from db_Connection import execute_query
 
 def main():
     current_dir = os.path.dirname(__file__)
-    csv_path = os.path.join(current_dir, "user_platforms2.csv")
+    csv_path = os.path.join(current_dir, "user_platforms3.csv")
     
     print(f"Starting import from: {csv_path}")
 
