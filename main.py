@@ -30,6 +30,13 @@ from social.follow import(
     follow, unfollow, get_followers, get_my_follows, search_by_email
 )
 
+from recommendation_system.recommendation_system import (
+    get_top_20_games_of_following,
+    get_top_20_games,
+    get_top_5_released,
+    recommend_games
+)
+
 
 UUID :str = ""
 LOGGED_IN : bool = False
@@ -282,7 +289,18 @@ def handle_amount_of_collections(tokens):
     if(check_if_logged_in()):
         amount = amount_of_collections(UUID)
         print("You have " + str(amount) + " collections.")
-        
+
+##This will be the standard for printing details relating to a user    
+def print_users(users):
+    print("Username | Followers | Following | Collections")
+    print("----------------------------------------------")
+    for user in users:
+        print(f"{user[0]} | {user[1][0]} | {user[1][1]} | {user[1][2]}")
+        print("----------------------------------------------")
+    
+
+
+
 def handle_follow(tokens):
     if(len(tokens) > 1 and check_if_logged_in()):
         username = tokens[1]
@@ -307,9 +325,7 @@ def handle_get_followers():
         if(result == None):
             print("You have no followers")
         else:
-            print("Followers: ")
-            for follower in result:
-                print(follower)
+            print_users(result)
         
 def handle_get_my_follows():
     if check_if_logged_in():
@@ -317,9 +333,7 @@ def handle_get_my_follows():
         if(result == None):
             print("You aren't following anyone")
         else:
-            print("Following: ")
-            for follower in result:
-                print(follower)
+            print_users(result)
     
 def handle_search_by_email(tokens):
     if(len(tokens) == 3 and check_if_logged_in()):
@@ -328,7 +342,7 @@ def handle_search_by_email(tokens):
         if(result == None):
             print("Email does not match user")
         else:
-            print(result)
+            print_users(result)
     
 
 
@@ -502,6 +516,46 @@ def handle_buy_game(tokens):
     else:
         print("Game name cannot be empty.")
 
+def handle_recommend(tokens):
+    if not check_if_logged_in():
+        print("You must be logged in to rate a game.")
+        return
+    if(len(tokens) == 1):
+        rows = recommend_games(user_uuid=UUID)
+        if rows is None or len(rows) == 0:
+            print("An error occured getting your recommended games")
+            return
+        else:
+            print_games(rows=rows)
+            return
+    elif(len(tokens) == 2 and tokens[1] == "following"):
+        rows = get_top_20_games_of_following(user_uuid=UUID)
+        if rows is None:
+            print("An error occured getting your recommended games")
+            return
+        else:
+            print_games(rows=rows)
+
+def handle_top(tokens):
+    if(len(tokens) == 1):
+        rows = get_top_20_games()
+        if rows is None:
+            print("An error occured getting the top 20 games")
+            return
+        else:
+            print_games(rows=rows)
+            return
+    elif(len(tokens) == 2 and tokens[1] == "release"):
+        rows = get_top_5_released()
+        if rows is None:
+            print("An error occured getting the top 5 releases in the last 3 months")
+            return
+        else:
+            print_games(rows=rows)
+            return
+    else:
+        print("Incorrect arguments")      
+
 def check_if_logged_in():
     if UUID == "" or LOGGED_IN == False:
         print("Login Required First")
@@ -609,8 +663,15 @@ def main():
         elif tokens[0].lower() == "following":
             if(len(tokens) <= 2):
                 handle_get_my_follows()
-                
-                
+                continue
+        elif tokens[0].lower() == "recommend":
+            if(len(tokens) <= 2):
+                handle_recommend(tokens=tokens)
+                continue
+        elif tokens[0].lower() == "top":
+            if(len(tokens) <= 2):
+                handle_top(tokens=tokens)
+                continue
                 
 
                 
