@@ -7,7 +7,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from db_Connection import execute_query
 
 def generate_user_plays():
-    # Get users who own games (from user_owns_game table)
     users_with_games = execute_query("""
         SELECT DISTINCT user_uuid FROM user_owns_game 
     """, fetchall=True)
@@ -20,8 +19,7 @@ def generate_user_plays():
     
     for i, user_row in enumerate(users_with_games):
         user_uuid = user_row[0]
-        
-        # Get games this user owns
+
         owned_games = execute_query("""
             SELECT game_uuid FROM user_owns_game WHERE user_uuid = %s
         """, (user_uuid,), fetchall=True)
@@ -29,24 +27,20 @@ def generate_user_plays():
         if not owned_games:
             continue
             
-        # Each user has 20-100 play sessions total across their owned games
         total_sessions = random.randint(20, 100)
         
         for session in range(total_sessions):
-            # Pick a random game from user's owned games
             game_uuid = random.choice(owned_games)[0]
             
-            # Generate random play date within the last year
             days_ago = random.randint(1, 365)
             hours_ago = random.randint(0, 23)
             minutes_ago = random.randint(0, 59)
             
             played_at = datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago)
-            
-            # Generate realistic play time (15 minutes to 4 hours)
+
             time_played = random.choices(
                 [random.randint(15, 45), random.randint(46, 120), random.randint(121, 240)],
-                weights=[0.6, 0.3, 0.1]  # 60% short, 30% medium, 10% long sessions
+                weights=[0.6, 0.3, 0.1]
             )[0]
             
             try:
@@ -58,11 +52,10 @@ def generate_user_plays():
                 print(f"Error inserting play session: {e}")
                 continue
         
-        if (i + 1) % 50 == 0:  # Progress indicator
+        if (i + 1) % 50 == 0: 
             print(f"Processed {i + 1} users...")
     
     print("✅ User play sessions generation complete!")
 
-# Run the function
 if __name__ == "__main__":
     generate_user_plays()
