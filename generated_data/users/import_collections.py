@@ -27,56 +27,62 @@ def generate_collections():
     for i, user_row in enumerate(users_with_games):
         user_uuid = user_row[0]
         
+        # Get user's owned games
         user_games = execute_query("""
-            SELECT uog.game_uuid, g.title, 
-                   COALESCE(SUM(up.time_played), 0) as total_playtime
-            FROM user_owns_game uog
-            JOIN game g ON uog.game_uuid = g.game_uuid
-            LEFT JOIN user_plays up ON uog.user_uuid = up.user_uuid AND uog.game_uuid = up.game_uuid
-            WHERE uog.user_uuid = %s
-            GROUP BY uog.game_uuid, g.title
+            SELECT DISTINCT game_uuid FROM user_owns_game 
+            WHERE user_uuid = %s
         """, (user_uuid,), fetchall=True)
         
         if not user_games:
             continue
         
+        game_uuids = [game[0] for game in user_games]
+        
+        # Create 1-3 collections
         num_collections = random.randint(1, 3)
         selected_collections = random.sample(collection_names, num_collections)
         
         for collection_name in selected_collections:
-
             collection_uuid = str(uuid.uuid4())
             
-            execute_query("""
-                INSERT INTO collection (collection_uuid, user_uuid, collection_name, num_of_games, total_play_time)
-                VALUES (%s, %s, %s, 0, 0)
+            # Create collection
+            result = execute_query("""
+                INSERT INTO collection (collection_uuid, user_uuid, collection_name, num_of_games)
+                VALUES (%s, %s, %s, 0)
             """, (collection_uuid, user_uuid, collection_name))
-
-            num_games_to_add = random.randint(1, min(8, len(user_games)))
-        
-            games_with_weights = []
-            for game in user_games:
-                game_uuid, title, playtime = game
-
-                weight = 1 + (playtime / 60)
-                games_with_weights.append((game_uuid, weight))
             
-            game_uuids = [game[0] for game in games_with_weights]
-            weights = [game[1] for game in games_with_weights]
+            if not result:
+                print(f"❌ Failed to create collection {collection_name} for user {user_uuid}")
+                continue
             
-            selected_games = random.choices(game_uuids, weights=weights, k=num_games_to_add)
+            # Add 1-6 random games to collection
+            num_games_to_add = random.randint(1, min(6, len(game_uuids)))
+            selected_games = random.sample(game_uuids, num_games_to_add)
             
+            games_added_count = 0
             for game_uuid in selected_games:
-                execute_query("""
-                    INSERT INTO collection_contains (collection_uuid, game_uuid)
-                    VALUES (%s, %s)
-                """, (collection_uuid, game_uuid))
+                try:
+                    result = execute_query("""
+                        INSERT INTO collection_contains (collection_uuid, game_uuid)
+                        VALUES (%s, %s)
+                    """, (collection_uuid, game_uuid))
+                    
+                    if result:
+                        games_added_count += 1
+                    else:
+                        print(f"⚠️ Failed to add game {game_uuid} to collection {collection_uuid}")
+                        
+                except Exception as e:
+                    print(f"❌ Error adding game to collection: {str(e)}")
             
+            # Update game count
             execute_query("""
                 UPDATE collection 
                 SET num_of_games = %s 
                 WHERE collection_uuid = %s
-            """, (num_games_to_add, collection_uuid))
+            """, (games_added_count, collection_uuid))
+            
+            print(f"✅ Created collection '{collection_name}' with {games_added_count} games for user")
         
         if (i + 1) % 50 == 0:
             print(f"Processed {i + 1} users...")
