@@ -224,6 +224,28 @@ def main():
     flush_batches()
     conn.commit()
 
+    # ---- Update collection statistics (num_of_games and total_playtime) ----
+    print("Updating collection statistics...")
+    cur.execute("""
+        UPDATE collection c
+        SET
+            num_of_games = sub.num_games,
+            total_playtime = sub.total_playtime
+        FROM (
+            SELECT
+                cc.collection_uuid,
+                COUNT(cc.game_uuid) AS num_games,
+                COALESCE(SUM(up.time_played), 0) AS total_playtime
+            FROM collection_contains cc
+            JOIN collection c2 ON cc.collection_uuid = c2.collection_uuid
+            LEFT JOIN user_plays up ON up.user_uuid = c2.user_uuid AND up.game_uuid = cc.game_uuid
+            GROUP BY cc.collection_uuid
+        ) sub
+        WHERE c.collection_uuid = sub.collection_uuid;
+    """)
+    conn.commit()
+    print("Collection statistics updated.")
+
     # ---- Final Totals ----
     print("\n=== USER ACTIVITY IMPORT COMPLETE ===")
     print(f"Final Statistics:")
