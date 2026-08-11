@@ -1,8 +1,7 @@
 import psycopg # pyright: ignore[reportMissingImports]
 import uuid
 import hashlib
-from SteamUltraDeluxHDRemixRemastered2.connection import connect_to_db, execute_query
-
+from src.db import connect_to_db, execute_query
 
 
 def login_with_user(username: str, password: str):
