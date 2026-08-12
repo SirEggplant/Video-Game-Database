@@ -3,7 +3,7 @@ import psycopg
 from dotenv import load_dotenv
 
 # Load environment variables from .env
-load_dotenv()
+load_dotenv(dotenv_path="backend/.env")
 
 # Get the DATABASE_URL from environment
 DATABASE_URL = os.getenv("DATABASE_URL")

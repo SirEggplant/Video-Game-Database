@@ -1,0 +1,102 @@
+:root { --ink:#121729; --paper:#f6f7fb; --white:#fff; --violet:#6846ec; --violet-dark:#4f2bd3; --mint:#c8ffdc; --line:#e5e7f0; --muted:#6d7285; --danger:#bf2847; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; color:var(--ink); background:var(--paper); font-family:"DM Sans",sans-serif; }
+h1,h2,h3,p { margin-top:0; } h1,h2,h3,.brand { font-family:"Space Grotesk",sans-serif; } h1 { letter-spacing:-.055em; } h2 { font-size:1.8rem; letter-spacing:-.04em; } h3 { margin-bottom:.45rem; } button,input,select { font:inherit; }
+.hidden { display:none!important; }.muted { color:var(--muted); }.small { font-size:.84rem; }.eyebrow { margin-bottom:.55rem; color:var(--violet); font-size:.72rem; font-weight:700; letter-spacing:.14em; }
+.brand { display:inline-flex; align-items:center; gap:.55rem; color:var(--ink); font-size:1.12rem; font-weight:700; text-decoration:none; }.brand-mark { display:grid; place-items:center; width:29px; height:29px; color:white; background:var(--violet); border-radius:9px; font-size:.9rem; }
+.button { border:0; border-radius:10px; cursor:pointer; font-weight:700; padding:.72rem 1rem; transition:transform .18s,background .18s; }.button:hover { transform:translateY(-1px); }.primary { color:#fff; background:var(--violet); }.primary:hover { background:var(--violet-dark); }.ghost { color:var(--ink); background:transparent; border:1px solid var(--line); }.wide { width:100%; padding:.85rem 1rem; }.wide span { margin-left:.4rem; }
+.login-view { min-height:100vh; display:grid; grid-template-columns:1.15fr .85fr; }.login-hero { padding:clamp(3rem,10vw,10rem); color:#fff; background:linear-gradient(140deg,#151037,#342270 58%,#5e42c7); }.login-hero .eyebrow { color:var(--mint); }.login-hero h1 { font-size:clamp(3rem,6vw,5.8rem); line-height:.92; }.login-hero h1 span { color:var(--mint); }.login-hero > p:last-child { max-width:27rem; color:#d9d6ee; font-size:1.1rem; line-height:1.6; }.login-panel { display:grid; place-items:center; padding:2rem; background:#fff; }.login-card { width:min(100%,390px); }.login-card .brand { margin-bottom:4rem; }.login-card h2 { margin-bottom:.45rem; font-size:2rem; }.login-card label { display:block; margin-top:1.35rem; font-weight:600; font-size:.9rem; }.login-card input,.inline-form input,.search-bar input,select { width:100%; margin-top:.45rem; padding:.82rem .9rem; color:var(--ink); border:1px solid var(--line); border-radius:9px; background:#fff; outline:none; }.login-card input:focus,.inline-form input:focus,.search-bar input:focus,select:focus { border-color:var(--violet); box-shadow:0 0 0 3px #6846ec20; }.login-card .button { margin-top:1.1rem; }.form-error { min-height:1.25rem; margin:.8rem 0 0; color:var(--danger); font-size:.9rem; }
+.topbar { position:sticky; z-index:5; top:0; display:flex; align-items:center; justify-content:space-between; padding:1rem max(4vw,2rem); background:#ffffffed; backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }.topbar nav { display:flex; gap:1.6rem; }.topbar nav a { color:var(--muted); text-decoration:none; font-size:.92rem; font-weight:600; }.topbar nav a:hover { color:var(--violet); }.dashboard-hero { display:flex; align-items:end; justify-content:space-between; gap:2rem; padding:5.5rem max(6vw,2rem) 4rem; background:linear-gradient(110deg,#e6e4ff 0%,#f6f7fb 64%); }.dashboard-hero h1 { margin-bottom:0; font-size:clamp(2.7rem,5vw,5rem); line-height:.95; }.hero-note { width:min(22rem,100%); margin-bottom:.4rem; color:var(--muted); line-height:1.6; }
+.content-section { max-width:1300px; margin:0 auto; padding:4.5rem max(4vw,2rem); }.section-heading { display:flex; align-items:end; justify-content:space-between; gap:1rem; }.section-heading h2 { margin-bottom:0; }.section-heading.compact { align-items:baseline; }.search-bar { display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:.75rem; margin:1.7rem 0 2rem; padding:1rem; background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 10px 25px #20264408; }.search-bar input { margin:0; border-color:transparent; background:#f7f7fb; }.games-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:1rem; }.game-card { display:flex; flex-direction:column; min-height:265px; padding:1.25rem; background:var(--white); border:1px solid var(--line); border-radius:15px; box-shadow:0 8px 18px #20264407; }.game-card:hover { border-color:#cfc6ff; }.game-card h3 { margin:.65rem 0 .45rem; font-size:1.13rem; }.game-meta { color:var(--muted); font-size:.85rem; line-height:1.5; }.tag-row { display:flex; flex-wrap:wrap; gap:.4rem; }.tag { padding:.25rem .5rem; color:#4f2bd3; background:#eeeaff; border-radius:99px; font-size:.73rem; font-weight:700; }.rating { margin-top:auto; padding-top:1rem; color:#ee9a1a; font-size:.9rem; font-weight:700; }.card-actions { display:flex; gap:.5rem; margin-top:.8rem; }.card-actions .button { flex:1; padding:.56rem .4rem; font-size:.78rem; }.button.action { color:var(--violet); background:#f0edff; }.empty-state { grid-column:1/-1; padding:2rem; color:var(--muted); text-align:center; background:#fff; border:1px dashed #cfd2df; border-radius:12px; }
+.collections-layout,.profile-layout { display:grid; grid-template-columns:1.35fr .65fr; gap:3.5rem; background:#fff; border-top:1px solid var(--line); }.collections-list { display:grid; gap:.65rem; margin-top:1.5rem; }.collection-row { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.1rem; background:#f8f8fc; border-radius:11px; }.collection-row strong { display:block; }.collection-row span { color:var(--muted); font-size:.86rem; }.collection-tools { align-self:center; padding:1.4rem; background:#22164a; color:#fff; border-radius:16px; }.collection-tools .muted { color:#c7c1de; }.inline-form { display:flex; gap:.5rem; }.inline-form input { margin:0; }.inline-form .button { white-space:nowrap; }.select-label { display:block; margin-top:1.4rem; color:#dad6eb; font-size:.85rem; font-weight:700; }.select-label select { margin-top:.5rem; }.count-pill { display:grid; place-items:center; min-width:32px; height:28px; color:var(--violet); background:#eeeaff; border-radius:8px; font-size:.82rem; font-weight:700; }
+.profile-layout { align-items:start; }.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.7rem; margin-top:1.3rem; }.stat { padding:1.1rem; background:#f0edff; border-radius:12px; }.stat strong { display:block; font-family:"Space Grotesk",sans-serif; font-size:1.55rem; }.stat span { color:var(--muted); font-size:.8rem; }.top-games { display:grid; gap:.5rem; margin:1.2rem 0 0; padding:0; list-style:none; counter-reset:rank; }.top-games li { display:flex; align-items:center; gap:.75rem; padding:.7rem .2rem; border-bottom:1px solid var(--line); }.top-games li::before { counter-increment:rank; content:counter(rank, decimal-leading-zero); color:var(--violet); font-size:.75rem; font-weight:700; }.top-games strong { display:block; font-size:.92rem; }.top-games span { color:var(--muted); font-size:.78rem; }.toast { position:fixed; right:1.5rem; bottom:1.5rem; z-index:10; max-width:340px; padding:.85rem 1rem; color:#fff; background:#1e2740; border-radius:10px; opacity:0; pointer-events:none; transform:translateY(10px); transition:.2s; }.toast.show { opacity:1; transform:translateY(0); }.toast.error { background:var(--danger); }
+@media (max-width:800px) { .login-view,.collections-layout,.profile-layout { grid-template-columns:1fr; }.login-hero { min-height:42vh; padding:3rem 2rem; }.login-card .brand { margin-bottom:2rem; }.topbar nav { display:none; }.dashboard-hero { display:block; padding:3.5rem 2rem; }.hero-note { margin-top:1.4rem; }.search-bar { grid-template-columns:1fr; }.collections-layout,.profile-layout { gap:2rem; }.content-section { padding:3.5rem 1.25rem; } }
+
+/* ---- Genre Dropdown (scrollable) ----
+   Keeps the dropdown compact and scrollable when many genres are shown. ---- */
+.genre-dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+  appearance: auto;
+}
+
+/* ---- Pagination Controls ----
+   Clean, minimal pagination that matches the existing button styles. ---- */
+#pagination-controls {
+  margin-top: 1.5rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 0.75rem 0;
+}
+
+.pagination .page-info {
+  font-size: 0.95rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ---- Search bar layout (adds contributor field) ----
+   The grid now has 5 columns instead of 4 to accommodate the contributor input.
+   All other styles remain unchanged. ---- */
+.search-bar {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1.5fr auto;
+  gap: 0.75rem;
+  margin: 1.7rem 0 2rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 10px 25px #20264408;
+}
+
+/* Ensure inputs and selects inside the search bar keep the same look */
+.search-bar input,
+.search-bar select {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border-color: transparent;
+  background: #f7f7fb;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  min-width: 0;
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px #6846ec20;
+  background: #fff;
+}
+
+/* ---- Mobile responsiveness ----
+   On smaller screens, the search bar stacks vertically. ---- */
+@media (max-width: 800px) {
+  .search-bar {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+  .search-bar .button {
+    width: 100%;
+    justify-content: center;
+  }
+  .pagination {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .genre-dropdown {
+    max-height: 150px;
+  }
+}

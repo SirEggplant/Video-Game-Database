@@ -1,1 +1,7 @@
-
+{
+  "name": "video-game-database-frontend",
+  "private": true,
+  "scripts": {
+    "start": "npx serve . -l 3000"
+  }
+}

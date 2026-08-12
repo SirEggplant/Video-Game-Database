@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GameShelf</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main id="login-view" class="login-view">
+      <section class="login-hero">
+        <p class="eyebrow">YOUR GAME LIBRARY</p>
+        <h1>Find your next<br /><span>favorite game.</span></h1>
+        <p>Search a growing game database, keep collections, and follow what your friends play.</p>
+      </section>
+      <section class="login-panel">
+        <form id="login-form" class="login-card">
+          <div class="brand"><span class="brand-mark">G</span> GameShelf</div>
+          <h2>Welcome back</h2>
+          <p class="muted">Sign in to explore your game library.</p>
+          <label>Email <input id="email" type="email" autocomplete="email" required placeholder="you@example.com" /></label>
+          <label>Password <input id="password" type="password" autocomplete="current-password" required placeholder="Your password" /></label>
+          <p id="login-error" class="form-error" aria-live="polite"></p>
+          <button class="button primary wide" type="submit">Sign in <span>→</span></button>
+        </form>
+      </section>
+    </main>
+
+    <main id="app-view" class="app-view hidden">
+      <header class="topbar">
+        <a class="brand" href="#top"><span class="brand-mark">G</span> GameShelf</a>
+        <nav><a href="#discover">Discover</a><a href="#collections">Collections</a><a href="#profile">Profile</a></nav>
+        <button id="logout-button" class="button ghost">Log out</button>
+      </header>
+
+      <section id="top" class="dashboard-hero">
+        <div><p class="eyebrow">DISCOVER</p><h1>Your next obsession<br />is waiting.</h1></div>
+        <p class="hero-note">Search 2,500+ games, track your sessions, and build a library that feels like you.</p>
+      </section>
+
+      <section id="discover" class="content-section">
+        <div class="section-heading"><div><p class="eyebrow">GAME EXPLORER</p><h2>Search the catalog</h2></div><p id="result-count" class="muted"></p></div>
+        
+        <form id="search-form" class="search-bar">
+          <input id="search-title" type="search" placeholder="Search by title" aria-label="Search title" />
+          <select id="search-genre" class="genre-dropdown" aria-label="Filter by genre">
+            <option value="">All Genres</option>
+          </select>
+          <input id="search-platform" type="search" placeholder="Platform" aria-label="Search platform" />
+          <input id="search-contributor" type="search" placeholder="Contributor (developer/publisher)" aria-label="Search contributor" />
+          <button class="button primary" type="submit">Search</button>
+        </form>
+        
+        <div id="games-grid" class="games-grid"><p class="empty-state">Search by title, genre, platform, or contributor to browse games.</p></div>
+        
+        <!-- Pagination Controls -->
+        <div id="pagination-controls"></div>
+      </section>
+
+      <section id="collections" class="content-section collections-layout">
+        <div>
+          <div class="section-heading"><div><p class="eyebrow">YOUR LIBRARY</p><h2>My Collections</h2></div><span id="collection-total" class="count-pill">0</span></div>
+          <div id="collections-list" class="collections-list"><p class="empty-state">Loading your collections…</p></div>
+        </div>
+        <aside class="collection-tools">
+          <h3>Add a collection</h3>
+          <form id="create-collection-form" class="inline-form"><input id="new-collection-name" required maxlength="255" placeholder="e.g. Weekend games" /><button class="button primary" type="submit">Create</button></form>
+          <label class="select-label">Add games to<select id="collection-select"><option value="">Choose a collection</option></select></label>
+          <p class="muted small">Choose a collection, then use “Add to Collection” on a game card.</p>
+        </aside>
+      </section>
+
+      <section id="profile" class="content-section profile-layout">
+        <div><p class="eyebrow">PROFILE</p><h2>Your activity</h2><div id="profile-stats" class="stats-grid"></div></div>
+        <div><div class="section-heading compact"><h3>Top 10 games for you</h3><span class="muted small">Based on your play history</span></div><ol id="top-games" class="top-games"><li class="empty-state">Loading recommendations…</li></ol></div>
+      </section>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
