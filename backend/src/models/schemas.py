@@ -84,3 +84,7 @@ class UserSearchResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+class SearchResponse(BaseModel):
+    total: int
+    results: list[GameSearchResponse]

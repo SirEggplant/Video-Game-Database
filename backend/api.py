@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Annotated, Any
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -26,18 +26,7 @@ from src.collections.crud import (
 )
 from src.games.playing import play_Game, rate_Game
 from src.games.recommendations import recommend_games
-from src.games.search import (
-    get_game_all,
-    get_game_by_developer,
-    get_game_by_genre,
-    get_game_by_platform,
-    get_game_by_price_between,
-    get_game_by_price_lower_than,
-    get_game_by_publisher,
-    get_game_by_release_year,
-    get_game_by_title,
-    get_games_by_esrb,
-)
+from src.games.search import search_games  # <-- IMPORT THE NEW SEARCH FUNCTION
 from src.models.schemas import (
     CollectionCreateRequest,
     CollectionGameRequest,
@@ -50,6 +39,7 @@ from src.models.schemas import (
     PlayRequest,
     RateRequest,
     RegisterRequest,
+    SearchResponse,  # <-- ADD THIS
     TokenResponse,
     UserSearchResponse,
 )
@@ -132,54 +122,44 @@ def _collection_dict(row: Any) -> dict[str, Any]:
     }
 
 
-def _matches(value: Any, query: str) -> bool:
-    if isinstance(value, (list, tuple)):
-        return any(query.lower() in str(item).lower() for item in value)
-    return query.lower() in str(value or "").lower()
+# ---- Paginated Search Endpoint ----
+@app.get("/games/search", response_model=SearchResponse)
+def search_games_endpoint(
+    title: str | None = None,
+    genre: str | None = None,
+    platform: str | None = None,
+    year: int | None = None,
+    developer: str | None = None,
+    publisher: str | None = None,
+    price_min: float | None = None,
+    price_max: float | None = None,
+    esrb: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """
+    Search games with filters and pagination.
+    Returns { total: int, results: list[GameSearchResponse] }
+    """
+    # Combine contributor search (developer or publisher)
+    contributor = developer or publisher
+
+    # Delegate to the unified search function
+    result = search_games(
+        title=title,
+        genre=genre,
+        platform=platform,
+        contributor=contributor,
+        limit=limit,
+        offset=offset
+    )
+
+    # Convert rows to dicts
+    games = [_game_dict(row) for row in (result.get("results") or [])]
+    return {"total": result.get("total", 0), "results": games}
 
 
-def _search_games(**filters: Any) -> list[dict[str, Any]]:
-    """Delegate retrieval to the existing search functions, then combine filters."""
-    active = {key: value for key, value in filters.items() if value is not None}
-    if not active:
-        rows = get_game_all()
-    elif "title" in active:
-        rows = get_game_by_title(["", "", "", active["title"]])
-    elif "genre" in active:
-        rows = get_game_by_genre(active["genre"])
-    elif "platform" in active:
-        rows = get_game_by_platform(active["platform"])
-    elif "year" in active:
-        rows = get_game_by_release_year(str(active["year"]))
-    elif "developer" in active:
-        rows = get_game_by_developer(["", "", "", active["developer"]])
-    elif "publisher" in active:
-        rows = get_game_by_publisher(["", "", "", active["publisher"]])
-    elif active.get("price_min") is not None and active.get("price_max") is not None:
-        rows = get_game_by_price_between(str(active["price_min"]), str(active["price_max"]))
-    elif "price_max" in active:
-        rows = get_game_by_price_lower_than(str(active["price_max"]))
-    elif "esrb" in active:
-        rows = get_games_by_esrb(active["esrb"])
-    else:
-        rows = get_game_all()
-
-    games = [_game_dict(row) for row in (rows or [])]
-    for key, value in active.items():
-        if key == "price_min":
-            games = [game for game in games if game["min_price"] is not None and game["min_price"] >= value]
-        elif key == "price_max":
-            games = [game for game in games if game["max_price"] is not None and game["max_price"] <= value]
-        elif key == "year":
-            games = [game for game in games if game["release_year"] == value]
-        elif key == "esrb":
-            games = [game for game in games if _matches(game["esrb_rating"], value)]
-        else:
-            field = "genres" if key == "genre" else f"{key}s" if key in {"developer", "publisher"} else key
-            games = [game for game in games if _matches(game.get(field), value)]
-    return games
-
-
+# ---- Other Endpoints ----
 @app.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register_user(request: RegisterRequest):
     user = register(request.username, request.password, request.first_name, request.last_name, request.email)
@@ -196,14 +176,6 @@ def login(request: LoginRequest):
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect credentials")
     return {"access_token": _token_for(str(user[0]), user[1])}
-
-
-@app.get("/games/search", response_model=list[GameSearchResponse])
-def search_games(title: str | None = None, genre: str | None = None, platform: str | None = None,
-                 year: int | None = None, developer: str | None = None, publisher: str | None = None,
-                 price_min: float | None = None, price_max: float | None = None, esrb: str | None = None):
-    return _search_games(title=title, genre=genre, platform=platform, year=year, developer=developer,
-                         publisher=publisher, price_min=price_min, price_max=price_max, esrb=esrb)
 
 
 @app.get("/games/recommendations", response_model=list[GameSearchResponse])
