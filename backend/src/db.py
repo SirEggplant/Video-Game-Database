@@ -21,7 +21,7 @@ def get_connection():
 
     # Otherwise, create a new connection
     if not DATABASE_URL:
-        raise Exception("DATABASE_URL not set in .env file")
+        raise ValueError("DATABASE_URL not set in .env file")
 
     try:
         _conn = psycopg.connect(DATABASE_URL)
@@ -51,7 +51,7 @@ def execute_query(sql, params=(), fetchone=False, fetchall=False):
         print(f"Error executing query: {e}")
         try:
             conn.rollback()
-        except:
+        except Exception:
             pass
         return None
 
@@ -61,7 +61,7 @@ def close_connection():
     if _conn is not None:
         try:
             _conn.close()
-        except:
+        except Exception:
             pass
         _conn = None
 
