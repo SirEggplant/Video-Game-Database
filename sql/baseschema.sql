@@ -14,7 +14,6 @@ BEGIN
   END IF;
 END$$;
 
-
 CREATE TABLE "user" (
     user_UUID uuid NOT NULL PRIMARY KEY,
     first_name TEXT NOT NULL,
@@ -54,7 +53,6 @@ CREATE TABLE owns_platform(
     PRIMARY KEY(user_UUID, platform_UUID)
 );
 
-
 CREATE TABLE game(
     game_UUID uuid NOT NULL PRIMARY KEY,
     title TEXT NOT NULL UNIQUE,
@@ -81,7 +79,6 @@ CREATE TABLE game_release(
     FOREIGN KEY (game_UUID) REFERENCES game(game_UUID) ON DELETE CASCADE,
     PRIMARY KEY (game_UUID, platform_UUID)
 );
-
 
 CREATE TABLE genre(
     genre_UUID uuid NOT NULL PRIMARY KEY,
@@ -138,8 +135,6 @@ CREATE TABLE user_plays(
     FOREIGN KEY (game_UUID) REFERENCES game(game_UUID) ON DELETE CASCADE,
     PRIMARY KEY (user_UUID, game_UUID, played_at)
 );
-
-
 
 CREATE VIEW game_listing AS SELECT
     g.game_uuid,
