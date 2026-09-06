@@ -78,9 +78,9 @@ def main():
     """Test the connection."""
     result = execute_query("SELECT version();", fetchone=True)
     if result:
-        print("✅ Connected to:", result[0])
+        print("Connected to:", result[0])
     else:
-        print("❌ Connection failed")
+        print("Connection failed")
     close_connection()
 
 if __name__ == "__main__":
