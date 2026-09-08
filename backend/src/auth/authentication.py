@@ -1,6 +1,5 @@
 import uuid
 import hashlib
-import hmac
 from passlib.context import CryptContext
 from src.db import execute_query
 
