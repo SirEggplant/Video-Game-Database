@@ -15,7 +15,6 @@ def add_platform_to_user(uuid: str, platform_name : str):
                     WHERE platform_name ILIKE %s
                 )
             )
-
             RETURNING *
         """
 
@@ -26,9 +25,6 @@ def add_platform_to_user(uuid: str, platform_name : str):
             print(f"Error inserting platform: {e}")
             return
 
-
     else:
         print(f"Platform ({platform_name}) is not supported by SteamUltraDeluxHDRemix2")
         return 
-
-
