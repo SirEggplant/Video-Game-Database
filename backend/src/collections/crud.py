@@ -182,13 +182,5 @@ def user_owns_collection(user_uuid: str, collection_name: str):
         return None
 
 
-def main():
-    uuid = "44ecfb56-8c85-4165-b085-fb2ebc53b238"
-    # print(create_collection(uuid, "Da Collection"))
-    # print(create_collection(uuid, "Da Collection2"))
-    # print(list_users_collections(uuid))
-    print(add_game_to_collection("2f973766-9419-4118-b397-fe9d7c2c1fe7","f4cdb9e9-83fc-4bbc-bb84-225b34b8e58d"))
-
-
 if __name__ == "__main__":
     main()
