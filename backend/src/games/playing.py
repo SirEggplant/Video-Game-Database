@@ -3,7 +3,6 @@ import uuid
 import random
 from src.db import execute_query
 
-
 def buy_Game(user_id: str, parts):
     
     game_title = " ".join(parts[1:])
@@ -28,7 +27,6 @@ def buy_Game(user_id: str, parts):
     except:
         # Optionally log the exception e here
         return None
-
 
 def rate_Game(user_id: str, parts):
 
@@ -62,7 +60,6 @@ def rate_Game(user_id: str, parts):
         return (game_title, rating)
     except:
         return None
-
 
 def play_Game(user_id: str, parts):
 
@@ -135,7 +132,6 @@ def get_game_from_title(game_title: str):
 def get_Random_Game_From_Collection(collection_name: str, user_id: str):
     if not collection_id and not user_id:
         return None
-
     
     sql_select_collection = """
         SELECT collection_UUID 
