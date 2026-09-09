@@ -16,7 +16,6 @@ esrbs = {
 SQL_STORED = ""
 PARAMS_STORED = ""
 
-
 def apply_regular_order(sql: str, params, fetchall=False):
     sql = sql + f" ORDER BY title, release_year ASC"
     try:
@@ -26,12 +25,10 @@ def apply_regular_order(sql: str, params, fetchall=False):
         print(f"Error fetching games: {e}")
         return None
 
-
 def store_previous_sql_query(sql: str, params):
     global SQL_STORED, PARAMS_STORED
     SQL_STORED = sql
     PARAMS_STORED = params
-
 
 def sort_by(field: str, order: str):
     lower_field = field.lower()
@@ -71,7 +68,6 @@ def create_game(game_title: str, game_description: str, game_esrb: str):
     except:
         return None
 
-
 def get_game_by_uuid(game_uuid: str):
     sql = """
         SELECT * FROM game_listing
@@ -82,7 +78,6 @@ def get_game_by_uuid(game_uuid: str):
         return row
     except:
         return None
-
 
 def get_game_by_title(tokens):
     title = " ".join(tokens[3:]).strip()
@@ -99,7 +94,6 @@ def get_game_by_title(tokens):
         return rows
     except:
         return None
-
 
 def get_game_by_genre(genre: str):
     sql = """
@@ -123,7 +117,6 @@ def get_game_by_genre(genre: str):
         print(f"Error fetching games by genre: {e}")
         return None
 
-
 def get_game_by_platform(platform: str):
     sql = """
         SELECT game_uuid, title, platforms, developers, publishers,
@@ -146,7 +139,6 @@ def get_game_by_platform(platform: str):
         print(f"Error fetching games by platform: {e}")
         return None
 
-
 def get_game_by_release_year(year: str):
     sql = """
         SELECT game_uuid, title, platforms, developers, publishers,
@@ -167,7 +159,6 @@ def get_game_by_release_year(year: str):
     except Exception as e:
         print(f"Error fetching games by release year: {e}")
         return None
-
 
 def get_game_by_developer(tokens):
     developer = " ".join(tokens[3:]).strip()
@@ -192,7 +183,6 @@ def get_game_by_developer(tokens):
         print(f"Error fetching games by developer: {e}")
         return None
 
-
 def get_game_by_publisher(tokens):
     publisher = " ".join(tokens[3:]).strip()
     sql = """
@@ -216,7 +206,6 @@ def get_game_by_publisher(tokens):
         print(f"Error fetching games by publisher: {e}")
         return None
 
-
 def get_game_by_price_lower_than(price: str):
     intPrice = int(price)
     sql = """
@@ -238,7 +227,6 @@ def get_game_by_price_lower_than(price: str):
     except Exception as e:
         print(f"Error fetching games by price: {e}")
         return None
-
 
 def get_game_by_price_between(lower_price: str, upper_price: str):
     actual_lower = int(lower_price)
@@ -263,7 +251,6 @@ def get_game_by_price_between(lower_price: str, upper_price: str):
         print(f"Error fetching games by price: {e}")
         return None
 
-
 def get_games_by_esrb(esrb: str):
     sql = """
         SELECT game_uuid, title, platforms, developers, publishers,
@@ -279,7 +266,6 @@ def get_games_by_esrb(esrb: str):
     except Exception as e:
         print(f"Error fetching games by ESRB: {e}")
         return None
-
 
 def get_game_all(limit: Optional[int] = None, offset: Optional[int] = 0):
     """
@@ -304,7 +290,6 @@ def get_game_all(limit: Optional[int] = None, offset: Optional[int] = 0):
         print(f"Error fetching all games: {e}")
         return None
 
-
 def get_game_uuid_by_title(game_title: str):
     """
     Simple function to get game UUID by title
@@ -322,7 +307,6 @@ def get_game_uuid_by_title(game_title: str):
     except Exception as e:
         print(f"Error: {e}")
         return None
-
 
 def search_games(
     title: Optional[str] = None,
@@ -405,10 +389,8 @@ def search_games(
         "total": total_count
     }
 
-
 def main():
     pass
-
 
 if __name__ == "__main__":
     main()
