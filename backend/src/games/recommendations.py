@@ -1,7 +1,5 @@
 from src.db import execute_query
 
-
-
 def get_top_20_games():
     sql = """
         SELECT
@@ -68,7 +66,6 @@ def get_top_20_games_of_following(user_uuid: str):
     except: 
         print("A SQL error occured getting the top 20 games of following users")
         return None
-    
 
 def get_top_5_released():
     sql = """
@@ -98,7 +95,7 @@ def get_top_5_released():
     except: 
         print("A SQL error occured getting the top 5 releases")
         return None
-    
+
 def recommend_games(user_uuid: str):
     sql = """
     WITH fav_genres AS (
@@ -159,4 +156,3 @@ def main():
     print(get_top_20_games_of_following())
     print(get_top_5_released())
     print(recommend_games())
-
