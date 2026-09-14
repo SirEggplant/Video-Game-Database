@@ -150,9 +150,3 @@ def recommend_games(user_uuid: str):
     except: 
         print("A SQL error occured getting the top 20 recommended games")
         return None
-
-def main():
-    print(get_top_20_games())
-    print(get_top_20_games_of_following())
-    print(get_top_5_released())
-    print(recommend_games())

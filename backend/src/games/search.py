@@ -388,9 +388,3 @@ def search_games(
         "results": results if results else [],
         "total": total_count
     }
-
-def main():
-    pass
-
-if __name__ == "__main__":
-    main()
