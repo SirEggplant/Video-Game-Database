@@ -1,7 +1,6 @@
 """Pydantic request and response contracts for the HTTP API."""
 
 from datetime import date
-from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -84,6 +83,7 @@ class UserSearchResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
 
 class SearchResponse(BaseModel):
     total: int
