@@ -1,168 +1,147 @@
-import psycopg # pyright: ignore[reportMissingImports]
 from src.db import execute_query
-from src.collections.crud import *
+from src.collections.crud import amount_of_collections
 
-def get_followers(uuid: str):
-    
+
+def get_followers(user_uuid: str):
     sql = """
-        SELECT follower_user_uuid FROM follows 
+        SELECT follower_user_uuid FROM follows
         WHERE followed_user_uuid = %s
     """
-    
     try:
-        followers = execute_query(sql, (uuid,), fetchall=True)
+        followers = execute_query(sql, (user_uuid,), fetchall=True)
         followers_list = []
         for row in followers:
-            follower_id = row[0]  # assuming the follower UUID is the first column
+            follower_id = row[0]
             username = get_username_from_id(follower_id)
-            followers_list.append((username, otherUser_details(username)))
+            followers_list.append((username, other_user_details(username)))
         return followers_list
-
-    except:
+    except Exception:
         return None
-    
-def get_my_follows(uuid: str):
-    
+
+
+def get_my_follows(user_uuid: str):
     sql = """
-        SELECT followed_user_uuid FROM follows 
+        SELECT followed_user_uuid FROM follows
         WHERE follower_user_uuid = %s
     """
     try:
-        followers_rows = execute_query(sql, (uuid,), fetchall=True)
+        rows = execute_query(sql, (user_uuid,), fetchall=True)
         result = []
-        for row in followers_rows:
+        for row in rows:
             username = get_username_from_id(row[0])
-            result.append((username, otherUser_details(username)))
+            result.append((username, other_user_details(username)))
         return result
-    except:
+    except Exception:
         return None
+
 
 def follow(follower_id: str, username_followed: str):
     follower_id = str(follower_id)
     followed_id = str(get_user_from_username(username_followed))
-    
+
     sql = """
-    INSERT INTO follows(follower_user_uuid, followed_user_uuid) VALUES (%s, %s)
-    RETURNING *
+        INSERT INTO follows(follower_user_uuid, followed_user_uuid)
+        VALUES (%s, %s)
+        RETURNING *
     """
     try:
-        return execute_query(sql,(follower_id, followed_id), fetchall=True)
-    except:
+        return execute_query(sql, (follower_id, followed_id), fetchall=True)
+    except Exception:
         return None
+
 
 def unfollow(follower_id: str, username_followed: str):
     follower_id = str(follower_id)
     followed_id = str(get_user_from_username(username_followed))
-    
-    sql="""
-    DELETE FROM follows
-    WHERE follower_user_uuid = %s AND followed_user_uuid = %s
-    RETURNING *
+
+    sql = """
+        DELETE FROM follows
+        WHERE follower_user_uuid = %s AND followed_user_uuid = %s
+        RETURNING *
     """
     try:
-        return execute_query(sql,(follower_id, followed_id), fetchall=True)
-    except:
-        return None
-    
-def search_by_email(email: str):
-    sql="""
-    SELECT username
-    FROM "user"
-    WHERE email = %s
-    """
-    
-    try:
-        found_username = execute_query(sql,(email,), fetchall=True)[0][0]
-        found_users = []
-        found_users.append((str(found_username), otherUser_details(str(found_username))))
-        return found_users
-    except:
+        return execute_query(sql, (follower_id, followed_id), fetchall=True)
+    except Exception:
         return None
 
-def get_username_from_id(id):
-    id = str(id)
-    sql_select = """
-    SELECT username
-    FROM "user"
-    Where user_uuid = %s
+
+def search_by_email(email: str):
+    sql = """
+        SELECT username
+        FROM "user"
+        WHERE email = %s
     """
-    
-    users_Collections = otherUser_followers(id)
-    users_Collections = otherUser_followers(id)
-    users_Collections = otherUser_followers(id)
-    
     try:
-        username = execute_query(sql_select, (id,), fetchone=True)
-        user_str = str(username[0])
-        if user_str == "":
-            return None
-        return user_str
-    except:
+        found_username = execute_query(sql, (email,), fetchall=True)[0][0]
+        return [(str(found_username), other_user_details(str(found_username)))]
+    except Exception:
         return None
+
+
+def get_username_from_id(user_uuid: str):
+    user_uuid = str(user_uuid)
+    sql = """
+        SELECT username
+        FROM "user"
+        WHERE user_uuid = %s
+    """
+    try:
+        username = execute_query(sql, (user_uuid,), fetchone=True)
+        if not username:
+            return None
+        user_str = str(username[0])
+        return user_str if user_str else None
+    except Exception:
+        return None
+
 
 def get_user_from_username(username: str):
     username = str(username)
-    sql_select = """
-    SELECT user_UUID
-    FROM "user"
-    Where username = %s
+    sql = """
+        SELECT user_uuid
+        FROM "user"
+        WHERE username = %s
     """
-    
     try:
-        user_id = execute_query(sql_select, (username,), fetchone=True)
-        user_str = str(user_id[0])
-        if user_str == "":
+        user_id = execute_query(sql, (username,), fetchone=True)
+        if not user_id:
             return None
-        return user_str
-    except:
+        user_str = str(user_id[0])
+        return user_str if user_str else None
+    except Exception:
         return None
-    
-def otherUser_details(username: str):
+
+
+def other_user_details(username: str):
     user_uuid = get_user_from_username(username)
     try:
-        u_followers = otherUser_followers(user_uuid)
-        u_followings = otherUser_followings(user_uuid)
+        u_followers = other_user_followers(user_uuid)
+        u_followings = other_user_followings(user_uuid)
         u_collections = amount_of_collections(user_uuid)
         return (u_followers, u_followings, u_collections)
-    except:
+    except Exception:
         return None
-    
-    
-    
-def otherUser_followers (user_uuid: str):
+
+
+def other_user_followers(user_uuid: str):
     sql = """
-        SELECT COUNT(*) FROM follows WHERE
-        followed_user_UUID = %s
+        SELECT COUNT(*) FROM follows
+        WHERE followed_user_uuid = %s
     """
-    
     try:
         result = execute_query(sql, (user_uuid,), fetchone=True)
-        if(not result):
-            return 0
-        return result[0]
-    except:
+        return result[0] if result else 0
+    except Exception:
         return 0
-    
-def otherUser_followings (user_uuid: str):
+
+
+def other_user_followings(user_uuid: str):
     sql = """
-        SELECT COUNT(*) FROM follows WHERE
-        follower_user_UUID = %s
+        SELECT COUNT(*) FROM follows
+        WHERE follower_user_uuid = %s
     """
-    
     try:
         result = execute_query(sql, (user_uuid,), fetchone=True)
-        if(not result):
-            return 0
-        return result[0]
-    except:
+        return result[0] if result else 0
+    except Exception:
         return 0
-
-def main():
-    # print(follow("44ecfb56-8c85-4165-b085-fb2ebc53b238","e254a2c5-83f9-4600-9dc4-5afcd343ff10"))
-    print(get_followers("e254a2c5-83f9-4600-9dc4-5afcd343ff10"))
-
-
-if __name__ =="__main__":
-    main()
-
-
