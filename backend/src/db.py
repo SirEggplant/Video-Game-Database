@@ -73,15 +73,3 @@ def close_connections():
 def setup_connections():
     conn = get_connection()
     return conn, None  # server is no longer needed
-
-def main():
-    """Test the connection."""
-    result = execute_query("SELECT version();", fetchone=True)
-    if result:
-        print("Connected to:", result[0])
-    else:
-        print("Connection failed")
-    close_connection()
-
-if __name__ == "__main__":
-    main()
