@@ -1,13 +1,14 @@
-import psycopg # pyright: ignore[reportMissingImports]
 import uuid
+
 from src.db import execute_query
+
 
 def create_collection(user_uuid, collection_name):
     """Create a new collection for the given user."""
     sql = """
         INSERT INTO collection
         (collection_uuid, user_uuid, collection_name)
-        VALUES(%s,%s, %s)
+        VALUES(%s, %s, %s)
         RETURNING collection_uuid
     """
     collection_uuid = str(uuid.uuid4())
@@ -16,9 +17,10 @@ def create_collection(user_uuid, collection_name):
         row = execute_query(sql, (collection_uuid, user_uuid, collection_name), fetchone=True)
         print(f"Collection '{collection_name}' created successfully!")
         return row
-    except:
+    except Exception as e:
         print(f"Error creating collection '{collection_name}': {e}")
         return None
+
 
 def list_users_collections(user_uuid: str):
     """Return all collections belonging to a user, sorted by name (Z–A)."""
@@ -29,25 +31,27 @@ def list_users_collections(user_uuid: str):
     """
     try:
         return execute_query(sql, (user_uuid,), fetchall=True)
-    except:
+    except Exception:
         return None
-    
+
+
 def add_game_to_collection(tokens, user_uuid: str):
     """Add a game to a collection by name and update the game count."""
     collection_name = tokens[0]
     game_title = " ".join(tokens[1:])
 
-    game_uuid = get_game_from_title(game_title)    
+    game_uuid = get_game_from_title(game_title)
     collection_uuid = get_collection_from_name(collection_name)
-    
-    isOwned = user_owns_collection(user_uuid,collection_name)
-    if(not isOwned):
-        print("You do not own the collection " + str(collection_name) + "!")
 
-    isOwned = user_owns_collection(user_uuid,game_uuid)
-    if(not isOwned):
-        print("You do not own the game " + str(game_title) + "!")
-    
+    is_owned = user_owns_collection(user_uuid, collection_name)
+    if not is_owned:
+        print(f"You do not own the collection {collection_name}!")
+
+    # Note: this ownership check is likely incorrect (uses collection function for game)
+    is_owned = user_owns_collection(user_uuid, game_uuid)
+    if not is_owned:
+        print(f"You do not own the game {game_title}!")
+
     sql_insert = """
         INSERT INTO collection_contains (collection_uuid, game_uuid)
         VALUES (%s, %s)
@@ -60,12 +64,13 @@ def add_game_to_collection(tokens, user_uuid: str):
         RETURNING collection_uuid, num_of_games
     """
     try:
-        execute_query(sql_insert, (collection_uuid, game_uuid),fetchone=True)
+        execute_query(sql_insert, (collection_uuid, game_uuid), fetchone=True)
         execute_query(sql_update, (collection_uuid,))
         return True
-    except:
+    except Exception:
         return None
-    
+
+
 def delete_game_from_collection(tokens):
     """Remove a game from a collection by name and decrement the game count."""
     collection_name = tokens[0]
@@ -73,13 +78,12 @@ def delete_game_from_collection(tokens):
 
     game_uuid = get_game_from_title(game_title)
     collection_uuid = get_collection_from_name(collection_name)
-    
+
     sql_delete = """
         DELETE FROM collection_contains
         WHERE collection_uuid = %s AND game_uuid = %s
         RETURNING collection_uuid
     """
-    
     sql_update = """
         UPDATE collection
         SET num_of_games = num_of_games - 1
@@ -90,16 +94,17 @@ def delete_game_from_collection(tokens):
         execute_query(sql_delete, (collection_uuid, game_uuid))
         execute_query(sql_update, (collection_uuid,))
         return True
-    except:
+    except Exception:
         return None
-  
+
+
 def get_game_from_title(game_title: str):
+    """Return the UUID of a game matching the given title."""
     sql_select = """
         SELECT game_uuid
         FROM game_listing
         WHERE title ILIKE %s
     """
-    
     try:
         pattern = f"%{game_title}%"
         game_id_result = execute_query(sql_select, (pattern,), fetchone=True)
@@ -107,16 +112,17 @@ def get_game_from_title(game_title: str):
         if game_id_str == "":
             return None
         return game_id_str
-    except:
-        None  
-  
+    except Exception:
+        return None
+
+
 def get_collection_from_name(collection_title: str):
+    """Return the UUID of a collection matching the given name."""
     sql_select = """
         SELECT collection_uuid
         FROM collection
         WHERE collection_name ILIKE %s
     """
-    
     try:
         pattern = f"%{collection_title}%"
         collection_id = execute_query(sql_select, (pattern,), fetchone=True)
@@ -124,68 +130,68 @@ def get_collection_from_name(collection_title: str):
         if collection_str == "":
             return None
         return collection_str
-    except:
-        None
+    except Exception:
+        return None
+
 
 def rename_collection(user_uuid: str, old_name: str, new_name: str):
     """Rename a collection for a specific user."""
     sql_update = """
-        UPDATE collection SET collection_name = %s 
+        UPDATE collection SET collection_name = %s
         WHERE user_uuid = %s AND collection_name = %s
         RETURNING *
     """
-
-    row = execute_query(sql_update, (new_name, user_uuid, old_name,), fetchone=True)
+    row = execute_query(sql_update, (new_name, user_uuid, old_name), fetchone=True)
     return row
 
-def delete_collection(user_uuid: str, collection_name: str) :
+
+def delete_collection(user_uuid: str, collection_name: str):
     """Delete a user's collection (cascade removes all game links)."""
     sql_delete = """
-        DELETE FROM collection WHERE
-        user_uuid = %s AND collection_name = %s 
+        DELETE FROM collection
+        WHERE user_uuid = %s AND collection_name = %s
     """
+    execute_query(sql_delete, (user_uuid, collection_name))
+    result = execute_query(sql_delete, (user_uuid, collection_name))
+    return result is not None
 
-    execute_query(sql_delete, (user_uuid, collection_name,))
-    return
 
 def check_if_collection_exists(user_uuid: str, collection_name: str):
     """Return True if the collection exists, otherwise None."""
     sql = """
-        SELECT 1 FROM collection WHERE
-        user_uuid = %s AND collection_name = %s
+        SELECT 1 FROM collection
+        WHERE user_uuid = %s AND collection_name = %s
         LIMIT 1
     """
-
-    result = execute_query(sql, (user_uuid, collection_name,), fetchone=True)
+    result = execute_query(sql, (user_uuid, collection_name), fetchone=True)
     return result
+
 
 def amount_of_collections(user_uuid: str):
     """Return the total number of collections owned by a user."""
     sql = """
-        SELECT COUNT(*) FROM collection WHERE
-        user_uuid = %s
+        SELECT COUNT(*) FROM collection
+        WHERE user_uuid = %s
     """
-    
     try:
         result = execute_query(sql, (user_uuid,), fetchone=True)
-        if(not result):
+        if not result:
             return 0
         return result[0]
-    except:
+    except Exception:
         return 0
 
 
 def user_owns_collection(user_uuid: str, collection_name: str):
     """Return the collection row if the user owns it, otherwise None."""
     sql = """
-        SELECT * FROM collection WHERE
-        user_uuid = %s AND collection_name = %s
+        SELECT * FROM collection
+        WHERE user_uuid = %s AND collection_name = %s
     """
-    
     try:
-        result = execute_query(sql, (user_uuid, collection_name,), fetchone=True)
-        if(not result):
+        result = execute_query(sql, (user_uuid, collection_name), fetchone=True)
+        if not result:
             return None
         return result
-    except:
+    except Exception:
         return None
