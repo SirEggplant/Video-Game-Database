@@ -3,6 +3,7 @@ import uuid
 from src.db import execute_query
 
 def create_collection(user_uuid, collection_name):
+    """Create a new collection for the given user."""
     sql = """
         INSERT INTO collection
         (collection_uuid, user_uuid, collection_name)
@@ -20,6 +21,7 @@ def create_collection(user_uuid, collection_name):
         return None
 
 def list_users_collections(user_uuid: str):
+    """Return all collections belonging to a user, sorted by name (Z–A)."""
     sql = """
         SELECT * FROM collection
         WHERE user_uuid = %s
@@ -31,6 +33,7 @@ def list_users_collections(user_uuid: str):
         return None
     
 def add_game_to_collection(tokens, user_uuid: str):
+    """Add a game to a collection by name and update the game count."""
     collection_name = tokens[0]
     game_title = " ".join(tokens[1:])
 
@@ -64,6 +67,7 @@ def add_game_to_collection(tokens, user_uuid: str):
         return None
     
 def delete_game_from_collection(tokens):
+    """Remove a game from a collection by name and decrement the game count."""
     collection_name = tokens[0]
     game_title = " ".join(tokens[1:])
 
@@ -124,6 +128,7 @@ def get_collection_from_name(collection_title: str):
         None
 
 def rename_collection(user_uuid: str, old_name: str, new_name: str):
+    """Rename a collection for a specific user."""
     sql_update = """
         UPDATE collection SET collection_name = %s 
         WHERE user_uuid = %s AND collection_name = %s
@@ -134,6 +139,7 @@ def rename_collection(user_uuid: str, old_name: str, new_name: str):
     return row
 
 def delete_collection(user_uuid: str, collection_name: str) :
+    """Delete a user's collection (cascade removes all game links)."""
     sql_delete = """
         DELETE FROM collection WHERE
         user_uuid = %s AND collection_name = %s 
@@ -143,6 +149,7 @@ def delete_collection(user_uuid: str, collection_name: str) :
     return
 
 def check_if_collection_exists(user_uuid: str, collection_name: str):
+    """Return True if the collection exists, otherwise None."""
     sql = """
         SELECT 1 FROM collection WHERE
         user_uuid = %s AND collection_name = %s
@@ -153,6 +160,7 @@ def check_if_collection_exists(user_uuid: str, collection_name: str):
     return result
 
 def amount_of_collections(user_uuid: str):
+    """Return the total number of collections owned by a user."""
     sql = """
         SELECT COUNT(*) FROM collection WHERE
         user_uuid = %s
@@ -168,6 +176,7 @@ def amount_of_collections(user_uuid: str):
 
 
 def user_owns_collection(user_uuid: str, collection_name: str):
+    """Return the collection row if the user owns it, otherwise None."""
     sql = """
         SELECT * FROM collection WHERE
         user_uuid = %s AND collection_name = %s
@@ -180,7 +189,3 @@ def user_owns_collection(user_uuid: str, collection_name: str):
         return result
     except:
         return None
-
-
-if __name__ == "__main__":
-    main()
