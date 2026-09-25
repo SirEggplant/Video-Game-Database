@@ -2,7 +2,6 @@ import uuid
 
 from src.db import execute_query
 
-
 def create_collection(user_uuid, collection_name):
     """Create a new collection for the given user."""
     sql = """
