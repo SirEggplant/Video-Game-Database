@@ -12,7 +12,6 @@ PLATFORM = [
     "xbox series x|s",
 ]
 
-
 def add_platform_to_user(user_uuid: str, platform_name: str):
     """Add a platform to a user's owned platforms list, if supported."""
     if platform_name.lower() not in PLATFORM:
