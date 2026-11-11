@@ -100,3 +100,57 @@ h1,h2,h3,p { margin-top:0; } h1,h2,h3,.brand { font-family:"Space Grotesk",sans-
     max-height: 150px;
   }
 }
+
+/* ---- Auth Tabs ---- */
+.auth-tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin: 2.5rem 0 1.5rem;
+  padding: 0.3rem;
+  background: #f0edff;
+  border-radius: 12px;
+}
+
+.auth-tabs button {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.auth-tabs button:hover {
+  color: var(--violet);
+}
+
+.auth-tabs button.active {
+  background: #fff;
+  color: var(--violet);
+  box-shadow: 0 2px 8px #20264410;
+}
+
+/* ---- Two-field row (first/last name) ---- */
+.field-row {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.field-row label {
+  flex: 1;
+  margin-top: 1.35rem;
+}
+
+/* ---- Register mode: slightly tighter spacing ---- */
+#register-fields label {
+  margin-top: 1rem;
+}
+
+/* ---- Keep the brand margin from being too big in register mode ---- */
+#register-fields + .form-error {
+  margin-top: 1rem;
+}

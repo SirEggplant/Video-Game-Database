@@ -24,6 +24,9 @@ const GENRES = [
   "Casual", "Arcade", "Card Game", "Board Game", "Trivia"
 ];
 
+// ---- Auth state ----
+let authMode = "login";
+
 // ---- Toast ----
 function showToast(message, isError = false) {
   const toast = $("#toast");
@@ -328,31 +331,105 @@ async function initializeDashboard() {
   await loadProfile();
 }
 
-// ---- Event Listeners ----
-document.addEventListener("DOMContentLoaded", () => {
-  populateGenres();
-  if (state.token) initializeDashboard();
-});
+// ---- Auth mode toggle ----
+function setAuthMode(mode) {
+  authMode = mode;
+  const isLogin = mode === "login";
 
-$("#login-form").addEventListener("submit", async (event) => {
+  $("#login-fields").classList.toggle("hidden", !isLogin);
+  $("#register-fields").classList.toggle("hidden", isLogin);
+
+  document.querySelectorAll(".auth-tabs button").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.mode === mode);
+  });
+
+  $("#auth-heading").textContent = isLogin ? "Welcome back" : "Create an account";
+  $("#auth-subtitle").textContent = isLogin
+    ? "Sign in to explore your game library."
+    : "Join GameShelf and start building your library.";
+  $("#auth-submit").innerHTML = isLogin
+    ? "Sign in <span>→</span>"
+    : "Create account <span>→</span>";
+
+  $("#login-error").textContent = "";
+}
+
+// ---- Auth form submit (login OR register) ----
+async function handleAuthSubmit(event) {
   event.preventDefault();
   $("#login-error").textContent = "";
+
+  if (authMode === "login") {
+    const email = $("#email").value.trim();
+    const password = $("#password").value;
+
+    if (!email || !password) {
+      $("#login-error").textContent = "Please enter your email and password.";
+      return;
+    }
+
+    try {
+      const response = await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+      state.token = response.access_token;
+      localStorage.setItem(TOKEN_KEY, state.token);
+      await initializeDashboard();
+    } catch (error) {
+      $("#login-error").textContent = error.message;
+    }
+    return;
+  }
+
+  // ---- Register mode ----
+  const username = $("#reg-username").value.trim();
+  const firstName = $("#reg-first-name").value.trim();
+  const lastName = $("#reg-last-name").value.trim();
+  const email = $("#reg-email").value.trim();
+  const password = $("#reg-password").value;
+
+  if (!username || !firstName || !lastName || !email || !password) {
+    $("#login-error").textContent = "All fields are required.";
+    return;
+  }
+  if (password.length < 8) {
+    $("#login-error").textContent = "Password must be at least 8 characters.";
+    return;
+  }
+
   try {
-    const response = await api("/auth/login", {
+    const response = await api("/auth/register", {
       method: "POST",
       body: JSON.stringify({
-        email: $("#email").value.trim(),
-        password: $("#password").value
-      })
+        username,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+      }),
     });
     state.token = response.access_token;
     localStorage.setItem(TOKEN_KEY, state.token);
     await initializeDashboard();
+    showToast(`Welcome, ${firstName}!`);
   } catch (error) {
     $("#login-error").textContent = error.message;
   }
+}
+
+// ---- Event Listeners ----
+document.addEventListener("DOMContentLoaded", () => {
+  populateGenres();
+  if (state.token) initializeDashboard();
+
+  // Auth tab toggles
+  document.querySelectorAll(".auth-tabs button").forEach((btn) => {
+    btn.addEventListener("click", () => setAuthMode(btn.dataset.mode));
+  });
 });
 
+$("#auth-form").addEventListener("submit", handleAuthSubmit);
 $("#search-form").addEventListener("submit", searchGames);
 $("#create-collection-form").addEventListener("submit", createCollection);
 $("#logout-button").addEventListener("click", () => logout());

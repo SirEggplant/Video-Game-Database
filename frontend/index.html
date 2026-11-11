@@ -17,18 +17,56 @@
         <p>Search a growing game database, keep collections, and follow what your friends play.</p>
       </section>
       <section class="login-panel">
-        <form id="login-form" class="login-card">
+        <form id="auth-form" class="login-card" novalidate>
           <div class="brand"><span class="brand-mark">G</span> GameShelf</div>
-          <h2>Welcome back</h2>
-          <p class="muted">Sign in to explore your game library.</p>
-          <label>Email <input id="email" type="email" autocomplete="email" required placeholder="you@example.com" /></label>
-          <label>Password <input id="password" type="password" autocomplete="current-password" required placeholder="Your password" /></label>
+
+          <div class="auth-tabs" role="tablist">
+            <button type="button" data-mode="login" class="active" role="tab">Sign In</button>
+            <button type="button" data-mode="register" role="tab">Create Account</button>
+          </div>
+
+          <h2 id="auth-heading">Welcome back</h2>
+          <p class="muted" id="auth-subtitle">Sign in to explore your game library.</p>
+
+          <!-- Login fields -->
+          <div id="login-fields">
+            <label>Email
+              <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+            </label>
+            <label>Password
+              <input id="password" type="password" autocomplete="current-password" placeholder="Your password" />
+            </label>
+          </div>
+
+          <!-- Register fields -->
+          <div id="register-fields" class="hidden">
+            <label>Username
+              <input id="reg-username" type="text" autocomplete="username" placeholder="gamer_tag" />
+            </label>
+            <div class="field-row">
+              <label>First name
+                <input id="reg-first-name" type="text" autocomplete="given-name" placeholder="John" />
+              </label>
+              <label>Last name
+                <input id="reg-last-name" type="text" autocomplete="family-name" placeholder="Doe" />
+              </label>
+            </div>
+            <label>Email
+              <input id="reg-email" type="email" autocomplete="email" placeholder="you@example.com" />
+            </label>
+            <label>Password
+              <input id="reg-password" type="password" autocomplete="new-password" placeholder="At least 8 characters" />
+            </label>
+          </div>
+
           <p id="login-error" class="form-error" aria-live="polite"></p>
-          <button class="button primary wide" type="submit">Sign in <span>→</span></button>
+          <button class="button primary wide" type="submit" id="auth-submit">
+            Sign in <span>→</span>
+          </button>
         </form>
       </section>
     </main>
-
+    
     <main id="app-view" class="app-view hidden">
       <header class="topbar">
         <a class="brand" href="#top"><span class="brand-mark">G</span> GameShelf</a>
