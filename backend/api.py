@@ -12,8 +12,6 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
-# These imports work both with ``python backend/api.py`` and with
-# ``uvicorn backend.api:app --reload`` (the backend package registers src).
 from src.auth.authentication import login_with_email, login_with_user, register
 from src.collections.crud import (
     add_game_to_collection,
@@ -26,7 +24,7 @@ from src.collections.crud import (
 )
 from src.games.playing import play_Game, rate_Game
 from src.games.recommendations import recommend_games
-from src.games.search import search_games  # <-- IMPORT THE NEW SEARCH FUNCTION
+from src.games.search import search_games
 from src.models.schemas import (
     CollectionCreateRequest,
     CollectionGameRequest,
@@ -39,7 +37,7 @@ from src.models.schemas import (
     PlayRequest,
     RateRequest,
     RegisterRequest,
-    SearchResponse,  # <-- ADD THIS
+    SearchResponse,
     TokenResponse,
     UserSearchResponse,
 )
