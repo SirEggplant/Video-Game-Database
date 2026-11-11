@@ -22,9 +22,9 @@ from src.collections.crud import (
     list_users_collections,
     rename_collection,
 )
-from src.games.playing import play_Game, rate_Game
+from src.games.playing import play_game, rate_game  # NOTE: snake_case (see below)
 from src.games.recommendations import recommend_games
-from src.games.search import search_games
+from src.games.search import get_game_by_uuid, search_games
 from src.models.schemas import (
     CollectionCreateRequest,
     CollectionGameRequest,
@@ -43,6 +43,9 @@ from src.models.schemas import (
 )
 from src.social.follow import follow, get_followers, get_my_follows, search_by_email, unfollow
 
+
+# ---- Constants ----
+COLLECTION_NOT_FOUND = "Collection not found"
 
 JWT_SECRET = os.getenv("JWT_SECRET", "change-this-development-jwt-secret")
 JWT_ALGORITHM = "HS256"
@@ -77,25 +80,39 @@ async def unexpected_error_handler(_request, _exc: Exception):
 
 def _token_for(user_uuid: str, username: str) -> str:
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
-    return jwt.encode({"sub": user_uuid, "username": username, "exp": expires_at}, JWT_SECRET, JWT_ALGORITHM)
+    return jwt.encode(
+        {"sub": user_uuid, "username": username, "exp": expires_at},
+        JWT_SECRET,
+        JWT_ALGORITHM,
+    )
 
 
-def current_user(credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer_scheme)]) -> dict[str, str]:
+def current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer_scheme)],
+) -> dict[str, str]:
     try:
-        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(
+            credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM]
+        )
         user_uuid = payload.get("sub")
         if not user_uuid:
             raise ValueError("Missing subject")
-        return {"user_uuid": str(user_uuid), "username": str(payload.get("username", ""))}
+        return {
+            "user_uuid": str(user_uuid),
+            "username": str(payload.get("username", "")),
+        }
     except (JWTError, ValueError):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired access token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired access token",
+        )
 
 
 CurrentUser = Annotated[dict[str, str], Depends(current_user)]
 GAME_FIELDS = (
-    "game_uuid", "title", "platforms", "developers", "publishers", "total_playtime_minutes",
-    "esrb_rating", "total_user_rating", "first_release_date", "release_year", "min_price",
-    "max_price", "genres",
+    "game_uuid", "title", "platforms", "developers", "publishers",
+    "total_playtime_minutes", "esrb_rating", "total_user_rating",
+    "first_release_date", "release_year", "min_price", "max_price", "genres",
 )
 
 
@@ -115,52 +132,49 @@ def _game_dict(row: Any) -> dict[str, Any]:
 
 def _collection_dict(row: Any) -> dict[str, Any]:
     return {
-        "collection_uuid": str(row[0]), "user_uuid": str(row[1]), "collection_name": row[2],
-        "num_of_games": row[3], "total_playtime": row[4],
+        "collection_uuid": str(row[0]),
+        "user_uuid": str(row[1]),
+        "collection_name": row[2],
+        "num_of_games": row[3],
+        "total_playtime": row[4],
     }
 
 
-# ---- Paginated Search Endpoint ----
+# ---- Search ----
 @app.get("/games/search", response_model=SearchResponse)
 def search_games_endpoint(
     title: str | None = None,
     genre: str | None = None,
     platform: str | None = None,
-    year: int | None = None,
     developer: str | None = None,
     publisher: str | None = None,
-    price_min: float | None = None,
-    price_max: float | None = None,
-    esrb: str | None = None,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ):
-    """
-    Search games with filters and pagination.
-    Returns { total: int, results: list[GameSearchResponse] }
-    """
-    # Combine contributor search (developer or publisher)
+    """Search games with filters and pagination."""
     contributor = developer or publisher
-
-    # Delegate to the unified search function
     result = search_games(
         title=title,
         genre=genre,
         platform=platform,
         contributor=contributor,
         limit=limit,
-        offset=offset
+        offset=offset,
     )
-
-    # Convert rows to dicts
     games = [_game_dict(row) for row in (result.get("results") or [])]
     return {"total": result.get("total", 0), "results": games}
 
 
-# ---- Other Endpoints ----
+# ---- Auth ----
 @app.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register_user(request: RegisterRequest):
-    user = register(request.username, request.password, request.first_name, request.last_name, request.email)
+    user = register(
+        request.username,
+        request.password,
+        request.first_name,
+        request.last_name,
+        request.email,
+    )
     if not user:
         raise HTTPException(status_code=409, detail="Username or email is already registered")
     return {"access_token": _token_for(str(user[0]), request.username)}
@@ -170,17 +184,23 @@ def register_user(request: RegisterRequest):
 def login(request: LoginRequest):
     if bool(request.username) == bool(request.email):
         raise HTTPException(status_code=400, detail="Provide exactly one of username or email")
-    user = login_with_user(request.username, request.password) if request.username else login_with_email(request.email, request.password)
+    user = (
+        login_with_user(request.username, request.password)
+        if request.username
+        else login_with_email(request.email, request.password)
+    )
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect credentials")
     return {"access_token": _token_for(str(user[0]), user[1])}
 
 
+# ---- Recommendations ----
 @app.get("/games/recommendations", response_model=list[GameSearchResponse])
 def recommendations(user: CurrentUser):
     return [_game_dict(row) for row in (recommend_games(user["user_uuid"]) or [])]
 
 
+# ---- Collections ----
 @app.get("/collections", response_model=list[CollectionResponse])
 def collections(user: CurrentUser):
     return [_collection_dict(row) for row in (list_users_collections(user["user_uuid"]) or [])]
@@ -190,34 +210,44 @@ def collections(user: CurrentUser):
 def create_user_collection(request: CollectionCreateRequest, user: CurrentUser):
     if check_if_collection_exists(user["user_uuid"], request.collection_name):
         raise HTTPException(status_code=409, detail="A collection with that name already exists")
-    created = create_collection(user["user_uuid"], request.collection_name)
-    if not created:
+    if not create_collection(user["user_uuid"], request.collection_name):
         raise HTTPException(status_code=400, detail="Could not create collection")
     rows = list_users_collections(user["user_uuid"]) or []
-    return next(_collection_dict(row) for row in rows if row[2] == request.collection_name)
+    created = next((row for row in rows if row[2] == request.collection_name), None)
+    if not created:
+        raise HTTPException(status_code=500, detail="Collection created but could not be retrieved")
+    return _collection_dict(created)
 
 
 @app.put("/collections/{collection_name}", response_model=CollectionResponse)
-def rename_user_collection(collection_name: str, request: CollectionRenameRequest, user: CurrentUser):
+def rename_user_collection(
+    collection_name: str, request: CollectionRenameRequest, user: CurrentUser
+):
     updated = rename_collection(user["user_uuid"], collection_name, request.new_name)
     if not updated:
-        raise HTTPException(status_code=404, detail="Collection not found or name already in use")
+        raise HTTPException(
+            status_code=404, detail="Collection not found or name already in use"
+        )
     return _collection_dict(updated)
 
 
 @app.delete("/collections/{collection_name}", response_model=MessageResponse)
 def delete_user_collection(collection_name: str, user: CurrentUser):
     if not check_if_collection_exists(user["user_uuid"], collection_name):
-        raise HTTPException(status_code=404, detail="Collection not found")
+        raise HTTPException(status_code=404, detail=COLLECTION_NOT_FOUND)
     delete_collection(user["user_uuid"], collection_name)
     return {"message": "Collection deleted"}
 
 
 @app.post("/collections/{collection_name}/games", response_model=MessageResponse)
-def add_collection_game(collection_name: str, request: CollectionGameRequest, user: CurrentUser):
+def add_collection_game(
+    collection_name: str, request: CollectionGameRequest, user: CurrentUser
+):
     if not check_if_collection_exists(user["user_uuid"], collection_name):
-        raise HTTPException(status_code=404, detail="Collection not found")
-    if not add_game_to_collection([collection_name, request.game_title], user["user_uuid"]):
+        raise HTTPException(status_code=404, detail=COLLECTION_NOT_FOUND)
+    if not add_game_to_collection(
+        [collection_name, request.game_title], user["user_uuid"]
+    ):
         raise HTTPException(status_code=400, detail="Could not add game to collection")
     return {"message": "Game added to collection"}
 
@@ -225,29 +255,43 @@ def add_collection_game(collection_name: str, request: CollectionGameRequest, us
 @app.delete("/collections/{collection_name}/games/{game_uuid}", response_model=MessageResponse)
 def remove_collection_game(collection_name: str, game_uuid: str, user: CurrentUser):
     if not check_if_collection_exists(user["user_uuid"], collection_name):
-        raise HTTPException(status_code=404, detail="Collection not found")
-    game = next((row for row in (get_game_all() or []) if str(row[0]) == game_uuid), None)
+        raise HTTPException(status_code=404, detail=COLLECTION_NOT_FOUND)
+    game = get_game_by_uuid(game_uuid)
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
+    # game_listing columns: 0=uuid, 1=title, ...
     if not delete_game_from_collection([collection_name, game[1]]):
         raise HTTPException(status_code=400, detail="Could not remove game from collection")
     return {"message": "Game removed from collection"}
 
 
+# ---- Play & Rate ----
 @app.post("/games/play", response_model=MessageResponse)
 def record_play(request: PlayRequest, user: CurrentUser):
-    if not play_Game(user["user_uuid"], ["play", str(request.minutes), request.game_title]):
-        raise HTTPException(status_code=400, detail="Could not record play session; you may not own this game")
+    # play_game expects ["play", "<minutes>", "<game title>"]
+    if not play_game(
+        user["user_uuid"], ["play", str(request.minutes), request.game_title]
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Could not record play session; you may not own this game",
+        )
     return {"message": "Play session recorded"}
 
 
 @app.post("/games/rate", response_model=MessageResponse)
-def rate_game(request: RateRequest, user: CurrentUser):
-    if not rate_Game(user["user_uuid"], [request.game_title, str(request.rating)]):
-        raise HTTPException(status_code=400, detail="Could not rate game; you may not own this game")
+def rate_game_endpoint(request: RateRequest, user: CurrentUser):
+    # rate_game expects ["rate", "<game title>", "<rating>"]
+    if not rate_game(
+        user["user_uuid"], ["rate", request.game_title, str(request.rating)]
+    ):
+        raise HTTPException(
+            status_code=400, detail="Could not rate game; you may not own this game"
+        )
     return {"message": "Game rating saved"}
 
 
+# ---- Social ----
 @app.post("/social/follow", response_model=MessageResponse)
 def follow_user(request: FollowRequest, user: CurrentUser):
     if not follow(user["user_uuid"], request.username):
@@ -265,8 +309,15 @@ def unfollow_user(request: FollowRequest, user: CurrentUser):
 def _social_rows(rows: Any) -> list[dict[str, Any]]:
     result = []
     for username, details in rows or []:
-        followers, following, collections = details or (0, 0, 0)
-        result.append({"username": username, "followers": followers, "following": following, "collections": collections})
+        followers, following, collections_count = details or (0, 0, 0)
+        result.append(
+            {
+                "username": username,
+                "followers": followers,
+                "following": following,
+                "collections": collections_count,
+            }
+        )
     return result
 
 
@@ -281,7 +332,8 @@ def following(user: CurrentUser):
 
 
 @app.get("/users/search", response_model=list[UserSearchResponse])
-def user_search(email: str):
+def user_search(email: str, user: CurrentUser):
+    """Search for users by email (requires authentication)."""
     return _social_rows(search_by_email(email))
 
 
