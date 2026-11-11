@@ -1,161 +1,149 @@
+"""Game purchase, rating, and play session tracking."""
 import psycopg # pyright: ignore[reportMissingImports]
-import uuid
 import random
 from src.db import execute_query
 
-def buy_Game(user_id: str, parts):
-    
+
+def buy_game(user_id: str, parts: list):
+    """Purchase a game (add to owned games with a random initial rating)."""
     game_title = " ".join(parts[1:])
-    rating = random.randint(1,5)
+    rating = random.randint(1, 5) # noqa
 
     if not user_id or not game_title:
         return None
-    
+
     sql_insert = """
-        INSERT INTO user_owns_game
-        (user_uuid, game_uuid, rating)
+        INSERT INTO user_owns_game (user_uuid, game_uuid, rating)
         VALUES (%s, %s, %s)
         RETURNING game_uuid
     """
-
     try:
-        # Add wildcards for partial matching
         game_id = get_game_from_title(game_title)
+        if not game_id:
+            return None
         execute_query(sql_insert, (user_id, game_id, rating))
-        # Return game_id string as useful success indicator
         return game_title
-    except:
-        # Optionally log the exception e here
+    except Exception:
         return None
 
-def rate_Game(user_id: str, parts):
 
-    if len(parts) >= 2 and parts[-1].isdigit():
-        game_title = " ".join(parts[1:-1])
-        rating = int(parts[-1])
-    else:
+def rate_game(user_id: str, parts: list):
+    """Update the rating of a game the user owns."""
+    if len(parts) < 2 or not parts[-1].isdigit():
         return None
 
-    try:
-        if not rating:
-            return None
-        elif rating > 5:
-            rating = 5
-        elif rating < 1:
-            rating = 1
-    except:
-        if not user_id or not game_title:
-            return None
+    game_title = " ".join(parts[1:-1])
+    rating = int(parts[-1])
+
+    if not user_id or not game_title:
+        return None
+
+    rating = max(1, min(5, rating))
 
     sql_update = """
-        UPDATE user_owns_game 
-        SET rating = %s 
-        WHERE game_UUID = %s and user_UUID = %s
+        UPDATE user_owns_game
+        SET rating = %s
+        WHERE game_uuid = %s AND user_uuid = %s
     """
-
     try:
         game_id = get_game_from_title(game_title)
-
+        if not game_id:
+            return None
         execute_query(sql_update, (rating, game_id, user_id))
         return (game_title, rating)
-    except:
+    except Exception:
         return None
 
-def play_Game(user_id: str, parts):
+
+def play_game(user_id: str, parts: list):
+    """Record a play session for a game or a random game from a collection."""
+    collection_name = ""
+    game_title = ""
+    time_played = 0
 
     if len(parts) > 1 and parts[1].isdigit():
-        game_title = " ".join(parts[2:])  # safe to use if length >=3; else this will be empty string
+        # play <minutes> <game title>
         time_played = int(parts[1])
-    elif len(parts) > 0 and parts[-1].isdigit():
+        game_title = " ".join(parts[2:])
+    elif len(parts) > 1 and parts[-1].isdigit():
+        # play <collection name> <minutes>
         time_played = int(parts[-1])
-        collection_name = " ".join(parts[1:-1])  # empty if length < 3
-        game_title = ""
-    else:
+        collection_name = " ".join(parts[1:-1])
+    elif len(parts) > 1:
+        # play <game title>  → random duration
         game_title = " ".join(parts[1:])
-        time_played = str(random.randint(1, 120))
+        time_played = random.randint(1, 120) # noqa
 
-        
-    if game_title == "":
-            game_id = get_Random_Game_From_Collection(collection_name, user_id)
+    if not user_id or time_played <= 0:
+        return None
 
-    sql_select_game = """
-        SELECT user_owns_game.game_UUID 
-        FROM user_owns_game
-        WHERE game_uuid = %s AND user_UUID = %s """
-
-    try:
+    if collection_name:
+        game_id = get_random_game_from_collection(collection_name, user_id)
+        if not game_id:
+            return None
+        game_title = collection_name
+    else:
         game_id = get_game_from_title(game_title)
-        owned = execute_query(sql_select_game, (game_id,user_id), fetchone=True)
+        if not game_id:
+            return None
+
+    sql_check_owned = """
+        SELECT game_uuid FROM user_owns_game
+        WHERE game_uuid = %s AND user_uuid = %s
+    """
+    sql_insert_play = """
+        INSERT INTO user_plays (game_uuid, user_uuid, time_played)
+        VALUES (%s, %s, %s)
+        RETURNING game_uuid
+    """
+    sql_update_user = """
+        UPDATE "user"
+        SET total_playtime = total_playtime + %s
+        WHERE user_uuid = %s
+    """
+    try:
+        owned = execute_query(sql_check_owned, (game_id, user_id), fetchone=True)
         if not owned:
             return None
-    except:
-        if not user_id or not time_played:
-            return None
-
-    sql_update = """
-            UPDATE "user" 
-            SET total_playtime = total_playtime + %s
-            WHERE user_uuid = %s
-        """
-
-    sql_insert = """
-        INSERT INTO user_plays
-        (game_UUID, user_UUID, time_played)
-        VALUES(%s, %s, %s)
-        RETURNING game_UUID
-    """
-
-    try:
-        execute_query(sql_insert,(game_id, user_id, time_played))
-        execute_query(sql_update, (time_played, user_id))
+        execute_query(sql_insert_play, (game_id, user_id, time_played))
+        execute_query(sql_update_user, (time_played, user_id))
         return (game_title, time_played)
-    except:
+    except Exception:
         return None
-    
+
+
 def get_game_from_title(game_title: str):
-    sql_select = """
-        SELECT game_uuid
-        FROM game_listing
+    """Return a game UUID by partial title match, or None if not found."""
+    if not game_title:
+        return None
+    sql = """
+        SELECT game_uuid FROM game_listing
         WHERE title ILIKE %s
-    """
-    
-    try:
-        pattern = f"%{game_title}%"
-        game_id_result = execute_query(sql_select, (pattern,), fetchone=True)
-        game_id_str = str(game_id_result[0])
-        if game_id_str == "":
-            return None
-        return game_id_str
-    except:
-        None
-    
-def get_Random_Game_From_Collection(collection_name: str, user_id: str):
-    if not collection_id and not user_id:
-        return None
-    
-    sql_select_collection = """
-        SELECT collection_UUID 
-        FROM collection
-        WHERE collection_name = %s and user_UUID = %s
-    """
-
-    sql_select_game = """
-        SELECT game_UUID FROM collection
-        WHERE collection_UUID = %s and user_UUID = %s
+        LIMIT 1
     """
     try:
-        collection_id = execute_query(sql_select_collection, (collection_name, user_id), fetchone=True)
-        collection_id = collection_id["collection_UUID"]
-
-        result = execute_query(sql_select_game, (collection_id, user_id), fetchone=True)
-        if not result or not result.get("collection"):
-            return None
-        
-        game_list = result["collection"]
-        if not game_list:
-            return None
-        
-        index = random.randint(0, len(game_list) - 1)
-        return game_list[index]
-    except:
+        result = execute_query(sql, (f"%{game_title}%",), fetchone=True)
+        return str(result[0]) if result else None
+    except Exception:
         return None
+
+
+def get_random_game_from_collection(collection_name: str, user_id: str):
+    """Return a random game UUID from a user's collection."""
+    if not collection_name or not user_id:
+        return None
+
+    sql = """
+        SELECT cc.game_uuid
+        FROM collection_contains cc
+        JOIN collection c ON c.collection_uuid = cc.collection_uuid
+        WHERE c.collection_name = %s AND c.user_uuid = %s
+    """
+    try:
+        rows = execute_query(sql, (collection_name, user_id), fetchall=True)
+        if not rows:
+            return None
+        return str(random.choice(rows)[0]) # noqa
+    except Exception:
+        return None
+    
