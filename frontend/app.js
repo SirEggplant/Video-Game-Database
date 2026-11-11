@@ -360,18 +360,23 @@ async function handleAuthSubmit(event) {
   $("#login-error").textContent = "";
 
   if (authMode === "login") {
-    const email = $("#email").value.trim();
+    const identifier = $("#email").value.trim();
     const password = $("#password").value;
 
-    if (!email || !password) {
-      $("#login-error").textContent = "Please enter your email and password.";
+    if (!identifier || !password) {
+      $("#login-error").textContent = "Please enter your email/username and password.";
       return;
     }
+
+    // If the input contains '@', treat it as an email; otherwise, a username.
+    const payload = identifier.includes("@")
+      ? { email: identifier, password }
+      : { username: identifier, password };
 
     try {
       const response = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
       state.token = response.access_token;
       localStorage.setItem(TOKEN_KEY, state.token);
@@ -381,7 +386,7 @@ async function handleAuthSubmit(event) {
     }
     return;
   }
-
+  
   // ---- Register mode ----
   const username = $("#reg-username").value.trim();
   const firstName = $("#reg-first-name").value.trim();
