@@ -66,7 +66,7 @@
         </form>
       </section>
     </main>
-    
+
     <main id="app-view" class="app-view hidden">
       <header class="topbar">
         <a class="brand" href="#top"><span class="brand-mark">G</span> GameShelf</a>
@@ -80,8 +80,11 @@
       </section>
 
       <section id="discover" class="content-section">
-        <div class="section-heading"><div><p class="eyebrow">GAME EXPLORER</p><h2>Search the catalog</h2></div><p id="result-count" class="muted"></p></div>
-        
+        <div class="section-heading">
+          <div><p class="eyebrow">GAME EXPLORER</p><h2>Search the catalog</h2></div>
+          <p id="result-count" class="muted"></p>
+        </div>
+
         <form id="search-form" class="search-bar">
           <input id="search-title" type="search" placeholder="Search by title" aria-label="Search title" />
           <select id="search-genre" class="genre-dropdown" aria-label="Filter by genre">
@@ -91,31 +94,73 @@
           <input id="search-contributor" type="search" placeholder="Contributor (developer/publisher)" aria-label="Search contributor" />
           <button class="button primary" type="submit">Search</button>
         </form>
-        
-        <div id="games-grid" class="games-grid"><p class="empty-state">Search by title, genre, platform, or contributor to browse games.</p></div>
-        
-        <!-- Pagination Controls -->
-        <div id="pagination-controls"></div>
+
+        <div id="search-results">
+          <div id="games-grid" class="games-grid">
+            <p class="empty-state">Search by title, genre, platform, or contributor to browse games.</p>
+          </div>
+          <div id="pagination-controls"></div>
+        </div>
       </section>
 
       <section id="collections" class="content-section collections-layout">
         <div>
-          <div class="section-heading"><div><p class="eyebrow">YOUR LIBRARY</p><h2>My Collections</h2></div><span id="collection-total" class="count-pill">0</span></div>
-          <div id="collections-list" class="collections-list"><p class="empty-state">Loading your collections…</p></div>
+          <div class="section-heading">
+            <div><p class="eyebrow">YOUR LIBRARY</p><h2>My Collections</h2></div>
+            <span id="collection-total" class="count-pill">0</span>
+          </div>
+          <div id="collections-list" class="collections-list">
+            <p class="empty-state">Loading your collections…</p>
+          </div>
         </div>
         <aside class="collection-tools">
           <h3>Add a collection</h3>
-          <form id="create-collection-form" class="inline-form"><input id="new-collection-name" required maxlength="255" placeholder="e.g. Weekend games" /><button class="button primary" type="submit">Create</button></form>
-          <label class="select-label">Add games to<select id="collection-select"><option value="">Choose a collection</option></select></label>
+          <form id="create-collection-form" class="inline-form">
+            <input id="new-collection-name" required maxlength="255" placeholder="e.g. Weekend games" />
+            <button class="button primary" type="submit">Create</button>
+          </form>
+          <label class="select-label">Add games to
+            <select id="collection-select"><option value="">Choose a collection</option></select>
+          </label>
           <p class="muted small">Choose a collection, then use “Add to Collection” on a game card.</p>
         </aside>
       </section>
 
       <section id="profile" class="content-section profile-layout">
-        <div><p class="eyebrow">PROFILE</p><h2>Your activity</h2><div id="profile-stats" class="stats-grid"></div></div>
-        <div><div class="section-heading compact"><h3>Top 10 games for you</h3><span class="muted small">Based on your play history</span></div><ol id="top-games" class="top-games"><li class="empty-state">Loading recommendations…</li></ol></div>
+        <div>
+          <p class="eyebrow">PROFILE</p><h2>Your activity</h2>
+          <div id="profile-stats" class="stats-grid"></div>
+        </div>
+        <div>
+          <div class="section-heading compact">
+            <h3>Top 10 games for you</h3>
+            <span class="muted small">Based on your play history</span>
+          </div>
+          <ol id="top-games" class="top-games">
+            <li class="empty-state">Loading recommendations…</li>
+          </ol>
+        </div>
       </section>
+
+      <!-- Cart floating button -->
+      <button id="cart-toggle" class="cart-toggle hidden" aria-label="Open cart">
+        🛒 <span id="cart-count">0</span>
+      </button>
+
+      <!-- Cart drawer -->
+      <aside id="cart-drawer" class="cart-drawer hidden" aria-label="Cart">
+        <header class="cart-header">
+          <h3>Your Cart</h3>
+          <button id="cart-close" class="cart-close" aria-label="Close cart">×</button>
+        </header>
+        <div id="cart-items" class="cart-items"></div>
+        <footer class="cart-footer">
+          <div id="cart-total" class="cart-total">Total: $0.00</div>
+          <button id="cart-checkout" class="button primary wide">Buy All</button>
+        </footer>
+      </aside>
     </main>
+
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="app.js"></script>
   </body>

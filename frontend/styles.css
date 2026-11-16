@@ -154,3 +154,192 @@ h1,h2,h3,p { margin-top:0; } h1,h2,h3,.brand { font-family:"Space Grotesk",sans-
 #register-fields + .form-error {
   margin-top: 1rem;
 }
+
+/* ---- Game card footer (price + add to cart) ---- */
+.game-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+
+.game-footer .price {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.game-footer .button {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.82rem;
+}
+
+.game-footer .button.in-cart {
+  color: var(--violet);
+  background: #eeeaff;
+}
+
+/* ---- Skeleton loading cards ---- */
+.skeleton-card {
+  pointer-events: none;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #eef0f6 25%, #f7f8fc 50%, #eef0f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-tag { width: 45%; height: 18px; margin-bottom: 0.9rem; }
+.skeleton-title { width: 75%; height: 22px; margin-bottom: 0.7rem; }
+.skeleton-meta { width: 55%; height: 14px; margin-bottom: 1.3rem; }
+.skeleton-footer { width: 100%; height: 32px; margin-top: auto; }
+
+/* ---- Floating cart button ---- */
+.cart-toggle {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.9rem 1.15rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--violet);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 8px 22px #4f2bd366;
+  cursor: pointer;
+  transition: transform 0.18s, background 0.18s;
+}
+
+.cart-toggle:hover {
+  background: var(--violet-dark);
+  transform: translateY(-2px);
+}
+
+.cart-toggle #cart-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 0.75rem;
+}
+
+/* ---- Cart drawer ---- */
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  width: min(360px, 90vw);
+  padding: 1.4rem;
+  background: #fff;
+  border-left: 1px solid var(--line);
+  box-shadow: -20px 0 40px rgba(20, 20, 50, 0.12);
+  transform: translateX(0);
+  transition: transform 0.25s ease;
+}
+
+.cart-drawer.hidden {
+  display: flex !important;
+  transform: translateX(100%);
+}
+
+.cart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.cart-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.cart-close {
+  border: 0;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.cart-close:hover {
+  color: var(--ink);
+}
+
+.cart-items {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.85rem;
+  background: #f8f8fc;
+  border-radius: 10px;
+}
+
+.cart-item strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.cart-item span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.cart-remove {
+  border: 0;
+  background: transparent;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.cart-remove:hover {
+  color: var(--danger);
+}
+
+.cart-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.cart-total {
+  margin-bottom: 0.75rem;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+}

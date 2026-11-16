@@ -146,4 +146,18 @@ def get_random_game_from_collection(collection_name: str, user_id: str):
         return str(random.choice(rows)[0]) # noqa
     except Exception:
         return None
-    
+
+def buy_game_by_uuid(user_id: str, game_uuid: str) -> bool:
+    """Purchase a game by UUID. Returns True if newly inserted, False if already owned."""
+    sql = """
+        INSERT INTO user_owns_game (user_uuid, game_uuid, rating)
+        VALUES (%s, %s, NULL)
+        ON CONFLICT (user_uuid, game_uuid) DO NOTHING
+        RETURNING game_uuid
+    """
+    try:
+        row = execute_query(sql, (user_id, game_uuid), fetchone=True)
+        return row is not None
+    except Exception as e:
+        print(f"Error buying game: {e}")
+        return False

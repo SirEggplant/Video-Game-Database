@@ -22,7 +22,7 @@ from src.collections.crud import (
     list_users_collections,
     rename_collection,
 )
-from src.games.playing import play_game, rate_game  # NOTE: snake_case (see below)
+from src.games.playing import play_game, rate_game, buy_game_by_uuid
 from src.games.recommendations import recommend_games
 from src.games.search import get_game_by_uuid, search_games
 from src.models.schemas import (
@@ -40,6 +40,8 @@ from src.models.schemas import (
     SearchResponse,
     TokenResponse,
     UserSearchResponse,
+    BuyRequest,
+    BuyResponse,
 )
 from src.social.follow import follow, get_followers, get_my_follows, search_by_email, unfollow
 
@@ -290,6 +292,21 @@ def rate_game_endpoint(request: RateRequest, user: CurrentUser):
         )
     return {"message": "Game rating saved"}
 
+@app.post("/games/buy", response_model=BuyResponse)
+def buy_games(request: BuyRequest, user: CurrentUser):
+    """Purchase one or more games (adds them to the user's owned games)."""
+    purchased = 0
+    already_owned = 0
+    for game_uuid in request.game_uuids:
+        if buy_game_by_uuid(user["user_uuid"], game_uuid):
+            purchased += 1
+        else:
+            already_owned += 1
+    return {
+        "purchased_count": purchased,
+        "already_owned_count": already_owned,
+        "message": f"Purchased {purchased} game(s). {already_owned} already owned.",
+    }
 
 # ---- Social ----
 @app.post("/social/follow", response_model=MessageResponse)

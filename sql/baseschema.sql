@@ -117,7 +117,7 @@ CREATE TABLE develops(
 CREATE TABLE user_owns_game(
     user_UUID uuid NOT NULL,
     game_UUID uuid NOT NULL,
-    rating INT NOT NULL CHECK(rating >= 1 AND rating <=5),
+    rating INT CHECK(rating IS NULL OR (rating >= 1 AND rating <= 5)),
     
     FOREIGN KEY (user_UUID) REFERENCES "user"(user_UUID) ON DELETE CASCADE,
     FOREIGN KEY (game_UUID) REFERENCES game(game_UUID) ON DELETE CASCADE,

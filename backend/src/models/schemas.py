@@ -88,3 +88,12 @@ class MessageResponse(BaseModel):
 class SearchResponse(BaseModel):
     total: int
     results: list[GameSearchResponse]
+
+class BuyRequest(BaseModel):
+    game_uuids: list[str] = Field(min_length=1)
+
+
+class BuyResponse(BaseModel):
+    purchased_count: int
+    already_owned_count: int
+    message: str

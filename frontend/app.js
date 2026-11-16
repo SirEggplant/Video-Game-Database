@@ -1,6 +1,7 @@
 const API_BASE = "http://localhost:8000";
 const TOKEN_KEY = "gameshelf_token";
 const PAGE_SIZE = 12;
+const CART_KEY = "gameshelf_cart";
 
 const state = {
   token: localStorage.getItem(TOKEN_KEY),
@@ -10,7 +11,7 @@ const state = {
   totalResults: 0,
   currentParams: null,
   isLoading: false,
-  isPreloading: false      // avoid duplicate background loads
+  isPreloading: false,     // avoid duplicate background loads
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -69,9 +70,12 @@ function logout(message) {
 }
 
 // ---- Helpers ----
-function text(value, fallback = "—") { return value === null || value === undefined || value === "" ? fallback : value; }
-function list(value) { return Array.isArray(value) ? value : []; }
-
+function text(value, fallback = "—") {
+  return value === null || value === undefined || value === "" ? fallback : value;
+}
+function list(value) {
+  return Array.isArray(value) ? value : [];
+}
 function escapeHtml(value) {
   const node = document.createElement("span");
   node.textContent = value ?? "";
@@ -83,7 +87,7 @@ function populateGenres() {
   const select = $("#search-genre");
   if (!select) return;
   select.innerHTML = '<option value="">All Genres</option>';
-  GENRES.forEach(genre => {
+  GENRES.forEach((genre) => {
     const option = document.createElement("option");
     option.value = genre;
     option.textContent = genre;
@@ -91,21 +95,63 @@ function populateGenres() {
   });
 }
 
+// ---- Price formatting ----
+function formatPrice(minPrice, maxPrice) {
+  if (minPrice == null && maxPrice == null) return "Free";
+  const lo = minPrice != null ? Number(minPrice) : null;
+  const hi = maxPrice != null ? Number(maxPrice) : null;
+  if (lo != null && hi != null) {
+    return lo === hi ? `$${lo.toFixed(2)}` : `From $${lo.toFixed(2)}`;
+  }
+  return lo != null ? `$${lo.toFixed(2)}` : `$${hi.toFixed(2)}`;
+}
+
 // ---- Game Card ----
 function gameCard(game) {
   const card = document.createElement("article");
   card.className = "game-card";
+
   const tags = list(game.genres).slice(0, 2)
     .map((genre) => `<span class="tag">${escapeHtml(genre)}</span>`)
     .join("") || '<span class="tag">Uncategorized</span>';
   const platforms = list(game.platforms).join(" · ") || "Platform unavailable";
+  const price = formatPrice(game.min_price, game.max_price);
+  const inCart = isInCart(game.game_uuid);
+
   card.innerHTML = `
     <div class="tag-row">${tags}</div>
     <h3>${escapeHtml(game.title)}</h3>
     <p class="game-meta">${escapeHtml(platforms)}</p>
     <p class="rating">★ ${text(game.total_user_rating, "No rating")}</p>
+    <div class="game-footer">
+      <span class="price">${price}</span>
+      <button class="button ${inCart ? "in-cart" : "action"} add-to-cart">
+        ${inCart ? "In Cart ✓" : "Add to Cart"}
+      </button>
+    </div>
+  `;
+  card.querySelector(".add-to-cart").addEventListener("click", () => toggleCart(game));
+  return card;
+}
+
+// ---- Skeleton loading ----
+function skeletonCard() {
+  const card = document.createElement("article");
+  card.className = "game-card skeleton-card";
+  card.innerHTML = `
+    <div class="skeleton skeleton-tag"></div>
+    <div class="skeleton skeleton-title"></div>
+    <div class="skeleton skeleton-meta"></div>
+    <div class="skeleton skeleton-footer"></div>
   `;
   return card;
+}
+
+function showSkeleton(count = 12) {
+  const grid = $("#games-grid");
+  if (!grid) return;
+  grid.replaceChildren();
+  for (let i = 0; i < count; i++) grid.append(skeletonCard());
 }
 
 // ---- Pagination ----
@@ -117,9 +163,9 @@ function renderPagination() {
 
   container.innerHTML = `
     <div class="pagination">
-      <button class="button ghost" id="prev-page" ${current === 0 ? 'disabled' : ''}>← Previous</button>
+      <button class="button ghost" id="prev-page" ${current === 0 ? "disabled" : ""}>← Previous</button>
       <span class="page-info">Page ${current + 1} of ${totalPages}</span>
-      <button class="button ghost" id="next-page" ${current >= totalPages - 1 ? 'disabled' : ''}>Next →</button>
+      <button class="button ghost" id="next-page" ${current >= totalPages - 1 ? "disabled" : ""}>Next →</button>
     </div>
   `;
 
@@ -134,23 +180,33 @@ function changePage(delta) {
   state.currentPage = newPage;
   renderCurrentPage();
   renderPagination();
-  // Scroll to top of results
   document.querySelector("#search-results")?.scrollIntoView({ behavior: "smooth" });
 }
 
 function renderCurrentPage() {
   const grid = $("#games-grid");
   if (!grid) return;
+
   const start = state.currentPage * PAGE_SIZE;
   const end = Math.min(start + PAGE_SIZE, state.allResults.length);
   const pageGames = state.allResults.slice(start, end);
 
-  grid.replaceChildren();
-  if (!pageGames.length) {
-    grid.innerHTML = '<p class="empty-state">No games on this page.</p>';
+  // If the page is empty but there are still unloaded pages, show skeleton placeholders.
+  const expectingMore =
+    state.allResults.length < state.totalResults &&
+    start >= state.allResults.length;
+
+  if (pageGames.length === 0) {
+    if (expectingMore) {
+      showSkeleton(PAGE_SIZE);
+    } else {
+      grid.innerHTML = '<p class="empty-state">No games on this page.</p>';
+    }
     return;
   }
-  pageGames.forEach(game => grid.append(gameCard(game)));
+
+  grid.replaceChildren();
+  pageGames.forEach((game) => grid.append(gameCard(game)));
 }
 
 // ---- Preload remaining pages in background ----
@@ -158,31 +214,18 @@ async function preloadRemainingPages(params, total, loadedCount) {
   if (state.isPreloading) return;
   state.isPreloading = true;
 
-  // Determine which offsets we still need
-  const remainingOffsets = [];
   for (let offset = loadedCount; offset < total; offset += PAGE_SIZE) {
-    remainingOffsets.push(offset);
-  }
-
-  // Fetch them sequentially (or in parallel with a limit)
-  for (const offset of remainingOffsets) {
     try {
       const url = `/games/search?${params}&limit=${PAGE_SIZE}&offset=${offset}`;
       const response = await api(url);
-      // Append to allResults
       state.allResults = state.allResults.concat(response.results);
-      // Update total results (should be consistent, but keep)
       state.totalResults = response.total;
-      // Optionally update UI if user is on a page that now has data (but we won't re-render)
     } catch (error) {
       console.warn("Failed to preload page", offset, error);
     }
   }
 
   state.isPreloading = false;
-  // Re-render current page in case user is waiting (but we didn't change page)
-  // However, if the user clicked to a page that wasn't loaded yet, it would have been empty.
-  // Now that all pages are loaded, we could re-render, but we can just rely on changePage.
 }
 
 // ---- Search ----
@@ -212,11 +255,12 @@ async function searchGames(event) {
   state.allResults = [];
   state.totalResults = 0;
   state.currentPage = 0;
-  const grid = $("#games-grid");
-  grid.innerHTML = '<p class="empty-state">Searching the catalog…</p>';
+
+  // Show skeleton cards immediately while loading
+  showSkeleton(PAGE_SIZE);
+  $("#result-count").textContent = "";
 
   try {
-    // Fetch page 0 immediately
     const page0 = await api(`/games/search?${params}&limit=${PAGE_SIZE}&offset=0`);
     state.allResults = page0.results;
     state.totalResults = page0.total;
@@ -226,10 +270,9 @@ async function searchGames(event) {
     const countLabel = `${page0.total} game${page0.total === 1 ? "" : "s"} found (page 1)`;
     $("#result-count").textContent = countLabel;
 
-    // Start preloading remaining pages in background
     preloadRemainingPages(state.currentParams, page0.total, PAGE_SIZE);
   } catch (error) {
-    grid.innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`;
+    $("#games-grid").innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`;
     state.allResults = [];
     state.totalResults = 0;
     renderPagination();
@@ -293,16 +336,16 @@ async function loadProfile() {
     const [followers, following, recommendations] = await Promise.all([
       api("/social/followers"),
       api("/social/following"),
-      api("/games/recommendations")
+      api("/games/recommendations"),
     ]);
 
     $("#profile-stats").innerHTML = [
       [state.collections.length, "Collections"],
       [followers.length, "Followers"],
-      [following.length, "Following"]
-    ].map(([value, label]) =>
-      `<div class="stat"><strong>${value}</strong><span>${label}</span></div>`
-    ).join("");
+      [following.length, "Following"],
+    ]
+      .map(([value, label]) => `<div class="stat"><strong>${value}</strong><span>${label}</span></div>`)
+      .join("");
 
     const topGames = $("#top-games");
     topGames.replaceChildren();
@@ -325,8 +368,118 @@ async function loadProfile() {
   }
 }
 
+// ---- Cart ----
+function loadCart() {
+  try {
+    return JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveCart(cart) {
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+}
+
+function isInCart(gameUuid) {
+  return loadCart().some((g) => g.game_uuid === gameUuid);
+}
+
+function toggleCart(game) {
+  const cart = loadCart();
+  const idx = cart.findIndex((g) => g.game_uuid === game.game_uuid);
+  if (idx >= 0) {
+    cart.splice(idx, 1);
+    showToast(`Removed "${game.title}" from cart.`);
+  } else {
+    cart.push({
+      game_uuid: game.game_uuid,
+      title: game.title,
+      price: game.min_price != null ? Number(game.min_price) : 0,
+    });
+    showToast(`Added "${game.title}" to cart.`);
+  }
+  saveCart(cart);
+  updateCartUI();
+  renderCurrentPage(); // refresh buttons
+}
+
+function removeFromCart(gameUuid) {
+  const cart = loadCart().filter((g) => g.game_uuid !== gameUuid);
+  saveCart(cart);
+  updateCartUI();
+  renderCurrentPage();
+}
+
+function updateCartUI() {
+  const cart = loadCart();
+  const toggle = $("#cart-toggle");
+  const count = $("#cart-count");
+  const items = $("#cart-items");
+  const total = $("#cart-total");
+
+  if (!toggle || !count || !items || !total) return;
+
+  if (cart.length === 0) {
+    toggle.classList.add("hidden");
+    $("#cart-drawer")?.classList.add("hidden");
+    return;
+  }
+
+  toggle.classList.remove("hidden");
+  count.textContent = cart.length;
+
+  items.innerHTML = cart
+    .map(
+      (item) => `
+        <div class="cart-item">
+          <div>
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>$${Number(item.price).toFixed(2)}</span>
+          </div>
+          <button class="cart-remove" data-uuid="${escapeHtml(item.game_uuid)}" aria-label="Remove">×</button>
+        </div>
+      `
+    )
+    .join("");
+
+  items.querySelectorAll(".cart-remove").forEach((btn) => {
+    btn.addEventListener("click", () => removeFromCart(btn.dataset.uuid));
+  });
+
+  const sum = cart.reduce((s, i) => s + Number(i.price || 0), 0);
+  total.textContent = `Total: $${sum.toFixed(2)}`;
+}
+
+async function checkout() {
+  const cart = loadCart();
+  if (cart.length === 0) return;
+
+  const btn = $("#cart-checkout");
+  btn.disabled = true;
+  btn.textContent = "Buying…";
+
+  try {
+    const res = await api("/games/buy", {
+      method: "POST",
+      body: JSON.stringify({ game_uuids: cart.map((i) => i.game_uuid) }),
+    });
+    saveCart([]);
+    updateCartUI();
+    $("#cart-drawer").classList.add("hidden");
+    showToast(res.message);
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Buy All";
+  }
+}
+
+// ---- Dashboard bootstrap ----
 async function initializeDashboard() {
   showApp();
+  updateCartUI();
   await loadCollections();
   await loadProfile();
 }
@@ -368,7 +521,6 @@ async function handleAuthSubmit(event) {
       return;
     }
 
-    // If the input contains '@', treat it as an email; otherwise, a username.
     const payload = identifier.includes("@")
       ? { email: identifier, password }
       : { username: identifier, password };
@@ -386,7 +538,7 @@ async function handleAuthSubmit(event) {
     }
     return;
   }
-  
+
   // ---- Register mode ----
   const username = $("#reg-username").value.trim();
   const firstName = $("#reg-first-name").value.trim();
@@ -428,7 +580,6 @@ document.addEventListener("DOMContentLoaded", () => {
   populateGenres();
   if (state.token) initializeDashboard();
 
-  // Auth tab toggles
   document.querySelectorAll(".auth-tabs button").forEach((btn) => {
     btn.addEventListener("click", () => setAuthMode(btn.dataset.mode));
   });
@@ -438,3 +589,12 @@ $("#auth-form").addEventListener("submit", handleAuthSubmit);
 $("#search-form").addEventListener("submit", searchGames);
 $("#create-collection-form").addEventListener("submit", createCollection);
 $("#logout-button").addEventListener("click", () => logout());
+
+// Cart listeners
+$("#cart-toggle")?.addEventListener("click", () => {
+  $("#cart-drawer")?.classList.remove("hidden");
+});
+$("#cart-close")?.addEventListener("click", () => {
+  $("#cart-drawer")?.classList.add("hidden");
+});
+$("#cart-checkout")?.addEventListener("click", checkout);
